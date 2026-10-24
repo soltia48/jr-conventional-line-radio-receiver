@@ -11,6 +11,8 @@ It **demodulates 22 channels at once from one wideband IQ stream and decodes eac
 The interface is in Japanese; this guide gives each on-screen label with its English meaning.
 “バージョン情報” (About), at the bottom of the window, shows the product name, version, and author.
 
+![The main window while stopped, with JR East's 22 channels ready to receive over RTL-TCP](docs/images/screenshot.png)
+
 ## Getting started
 
 Install stable Rust, the **SoapySDR 0.8 development libraries**, the SoapySDR module for your hardware,
