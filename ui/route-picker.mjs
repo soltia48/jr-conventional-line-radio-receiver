@@ -112,9 +112,9 @@ export class RoutePicker {
     const common = this.preset?.channels.some((c) => c.format === "common");
     this.get("route-common").checked = !!common;
     this.get("route-common").disabled = !common;
-    this.get("route-common-hint").textContent = common
-      ? "この会社の共通波を追加します。JR 東日本では運行把握モニタにも使います。"
-      : "このプリセットには旅客一斉情報の割当がありません。";
+    // Only explain the disabled state; the checkbox label covers the rest.
+    this.get("route-common-hint").textContent = common ? "" : "このプリセットには割当がありません";
+    this.get("route-common-hint").hidden = !!common;
     const routes = [...(this.preset?.routes ?? [])].sort((a, b) => a.line.localeCompare(b.line, "ja") || a.section.localeCompare(b.section, "ja"));
     this.items = routes.map((route) => {
       const item = this.node("li");

@@ -863,7 +863,7 @@ test("automatic selection plays the returned channel while a manual choice pins 
   );
   ui.$("channels-simple").children[0].querySelector(".channel-select").click();
   assert.equal(ui.$("auto-select").checked, false);
-  assert.match(ui.$("selection-hint").textContent, /手動選択を固定中/);
+  assert.match(ui.$("selection-hint").textContent, /手動選択で固定中/);
   await ui.poll(); // even an automatic recommendation cannot overwrite manual mode
   assert.equal(ui.$("selected-frequency").textContent, "352.53750");
   assert.equal(
@@ -1634,12 +1634,10 @@ test("operation monitor updates independently of manual audio selection and log 
   assert.match(app.$("operation-received-time").textContent, /09:32:00/);
   assert.equal(app.$("operation-state").textContent, "受信済み");
   // Reveal the controls without disturbing the paused log or audio selection.
-  app.w.document.querySelector('.message-channel-bar a').click();
+  app.$("message-channel").click();
   assert.equal(app.$("channels-panel").open, true);
   assert.equal(app.w.document.activeElement, app.$("channels-title"));
-  app.w.document.querySelector('.filter-note a').click();
   assert.equal(app.$("monitor-panel").open, true);
-  assert.equal(app.w.document.activeElement, app.$("monitor-title"));
   await app.click("channels-title");
   await app.click("monitor-title");
   assert.equal(app.$("channels-panel").open, false);
@@ -1699,17 +1697,17 @@ test("operation monitor selects by reception time and ignores legacy message dat
   assert.equal(app.$("operation-state").textContent, "受信済み");
   const view = new OperationMonitorView(app.w.document);
   view.update(s, { channels: s.channels.map((c) => c.config), enabled: new Set(), running: true, replay: true });
-  assert.equal(app.$("operation-received-label").textContent, "最終読取日時");
+  assert.equal(app.$("operation-received-label").textContent, "最終読取日時（JST）");
   assert.equal(app.$("operation-state").textContent, "IQ再生 · 受信済み");
 });
-test("sample-rate candidates follow the input kind and explain the required bandwidth", async (t) => {
+test("sample-rate candidates follow the input kind and explain only a rate that falls short", async (t) => {
   const ui = await setup(t);
   const chips = () => [...ui.$("rate-presets").querySelectorAll("button")];
   assert.deepEqual(
     chips().map((b) => Number(b.value)),
     [240000, 288000, 1024000, 2048000, 2400000],
   );
-  assert.match(ui.$("rate-hint").textContent, /139,650 S\/s を超えるレート/);
+  assert.equal(ui.$("rate-hint").hidden, true);
   assert.equal(ui.$("rate").getAttribute("aria-describedby"), "rate-hint");
   chips()[2].click();
   await tick();
@@ -1723,7 +1721,8 @@ test("sample-rate candidates follow the input kind and explain the required band
   assert.match(ui.$("rate-hint").textContent, /RTL-TCP の対応範囲外/);
   ui.input("rate", "240000");
   ui.input("center", "352.70");
-  assert.match(ui.$("rate-hint").textContent, /帯域が足りません/);
+  assert.match(ui.$("rate-hint").textContent, /帯域が足りません.*を超えるレートが必要/);
+  assert.equal(ui.$("rate-hint").hidden, false);
   await ui.change("input-kind", "sdr");
   assert.deepEqual(
     chips().map((b) => Number(b.value)),
@@ -1794,7 +1793,8 @@ test("live monitoring precedes secondary sections in document order", async (t) 
   assert.equal(ui.$("monitor-panel").contains(ui.$("selection-hint")), true);
   ui.$("channels-simple").children[2].querySelector(".channel-select").click();
   assert.equal(ui.$("auto-select").checked, false);
-  assert.match(ui.$("selection-hint").textContent, /受信バーの「通話を自動選択」/);
+  assert.match(ui.$("selection-hint").textContent, /手動選択で固定中/);
+  assert.equal(ui.$("selection-hint").hidden, false);
 });
 test("errors reach a live region that is present before the message appears", async (t) => {
   const ui = await setup(t, { catalogError: "設定の検証に失敗しました" });

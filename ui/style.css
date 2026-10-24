@@ -167,14 +167,6 @@ small,
   font-size: var(--text-caption);
   font-weight: 400;
 }
-.eyebrow {
-  color: var(--muted);
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  margin-block-end: 4px;
-}
 .topbar {
   max-width: 1800px;
   margin-inline: auto;
@@ -189,10 +181,6 @@ small,
   align-items: center;
   gap: 14px;
   min-width: 0;
-}
-.brand .eyebrow {
-  text-transform: none;
-  letter-spacing: 0;
 }
 .brand-icon {
   display: block;
@@ -334,9 +322,6 @@ main {
   color: var(--muted);
   margin-inline: 4px;
 }
-#band-note {
-  color: var(--muted);
-}
 .card {
   background: var(--surface);
   border: 1px solid var(--line);
@@ -354,12 +339,6 @@ main {
 #source-summary {
   color: var(--muted);
   overflow-wrap: anywhere;
-}
-.disclosure-hint {
-  color: var(--muted);
-  font-size: 0.75rem;
-  float: inline-end;
-  margin-inline-start: 12px;
 }
 summary {
   cursor: pointer;
@@ -392,11 +371,6 @@ fieldset {
   align-items: center;
   gap: 6px;
   margin-block-start: 12px;
-}
-.rate-presets-label {
-  color: var(--muted);
-  font-size: var(--text-caption);
-  margin-inline-end: 6px;
 }
 .rate-presets button {
   min-height: 32px;
@@ -481,7 +455,7 @@ fieldset {
   margin-block-start: 24px;
 }
 .workspace-navigation a,
-.message-channel-bar a {
+#message-channel {
   display: inline-flex;
   align-items: center;
   min-height: 40px;
@@ -520,20 +494,6 @@ fieldset {
   border-end-end-radius: 0;
   border-block-end: 1px solid var(--line);
 }
-.message-channel-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 4px 16px;
-  padding: 0 22px 12px;
-  font-size: var(--text-caption);
-}
-.message-channel-bar p {
-  font-variant-numeric: tabular-nums;
-  overflow-wrap: anywhere;
-  min-width: 0;
-}
 .section-title {
   display: flex;
   justify-content: space-between;
@@ -542,7 +502,7 @@ fieldset {
   gap: 16px;
   flex-wrap: wrap;
 }
-.section-title p:not(.eyebrow) {
+.section-title p:not(:empty) {
   color: var(--muted);
   font-size: var(--text-caption);
   font-variant-numeric: tabular-nums;
@@ -610,20 +570,6 @@ fieldset {
 }
 .channel-toolbar .check-label {
   white-space: nowrap;
-}
-.filter-note {
-  display: flex;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 12px 22px 18px;
-  font-size: 0.75rem;
-  color: var(--muted);
-}
-.filter-note a {
-  display: inline-flex;
-  align-items: center;
-  min-height: 24px;
 }
 .view-switch {
   display: flex;
@@ -777,12 +723,6 @@ tr.selected {
 .channel-error {
   color: var(--danger);
 }
-.table-note {
-  color: var(--muted);
-  font-size: 0.75rem;
-  padding: 16px 22px;
-  line-height: 1.8;
-}
 .frequency-heading {
   padding: 16px 22px 8px;
 }
@@ -840,11 +780,6 @@ canvas {
   background: var(--inset);
   border: 1px solid var(--line);
 }
-figcaption {
-  color: var(--muted);
-  font-size: 0.75rem;
-  margin-block-start: 10px;
-}
 .recording {
   margin-block: 24px 0;
 }
@@ -865,11 +800,6 @@ figcaption {
 }
 #recording-settings > summary {
   padding: 8px 22px 12px;
-  color: var(--muted);
-  font-size: var(--text-caption);
-}
-.recording-hint {
-  padding: 4px 22px 16px;
   color: var(--muted);
   font-size: var(--text-caption);
 }
@@ -904,11 +834,8 @@ figcaption {
 }
 .monitor-selection {
   padding: 0 22px 16px;
-}
-#selection-hint {
   color: var(--muted);
   font-size: var(--text-caption);
-  overflow-wrap: anywhere;
 }
 .recording-info {
   padding: 12px 22px 20px;
@@ -946,17 +873,11 @@ figcaption {
   font-variant-numeric: tabular-nums;
 }
 .decoder-options {
-  padding: 6px 22px 12px;
+  padding: 6px 22px 16px;
 }
 .decoder-options label {
   max-width: 22rem;
   margin-block-start: 8px;
-}
-.hint {
-  margin: 0;
-  padding: 0 22px 20px;
-  color: var(--muted);
-  font-size: var(--text-caption);
 }
 .message-toolbar {
   display: flex;
@@ -970,6 +891,19 @@ figcaption {
 }
 .message-toolbar button {
   font-size: 0.75rem;
+}
+#message-channel {
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+/* The open monitor shows the frequency and label large; the summary repeats them only while collapsed. */
+.monitor[open] > .panel-summary .panel-summary-meta {
+  display: none;
+}
+/* Nothing to report while stopped, so the footer takes no room. */
+.source-foot:has(> #capture-info:empty):has(> #progress:empty) {
+  display: none;
 }
 #messages {
   padding: 0 22px 20px;
@@ -1215,9 +1149,6 @@ body:has(#about-dialog[open]) {
   .monitor-grid {
     grid-template-columns: minmax(0, 1fr) minmax(140px, 0.7fr);
   }
-  .disclosure-hint {
-    display: none;
-  }
   input,
   select {
     font-size: 1rem;
@@ -1272,8 +1203,7 @@ body:has(#about-dialog[open]) {
   }
   .source-foot,
   .section-title,
-  .panel-summary,
-  .table-note {
+  .panel-summary {
     padding: 16px;
   }
   .channel-toolbar {
@@ -1287,16 +1217,11 @@ body:has(#about-dialog[open]) {
   }
   .recording-bar,
   #recording-settings > summary,
-  .recording-hint,
   .recording-controls,
   .recording-info,
   .output-options,
   .monitor-selection,
-  .message-channel-bar,
   #recording-error {
-    padding-inline: 16px;
-  }
-  .filter-note {
     padding-inline: 16px;
   }
   table,
@@ -1375,9 +1300,6 @@ body:has(#about-dialog[open]) {
   .decoder-options {
     padding-inline: 16px;
   }
-  .hint {
-    padding-inline: 16px;
-  }
   #messages {
     padding-inline: 16px;
   }
@@ -1422,7 +1344,7 @@ body:has(#about-dialog[open]) {
   display: flex;
   flex-wrap: wrap;
   gap: 12px 28px;
-  padding: 0 22px;
+  padding: 0 22px 16px;
   font-variant-numeric: tabular-nums;
 }
 .operation-times dt {
@@ -1433,11 +1355,6 @@ body:has(#about-dialog[open]) {
   margin-block-start: 4px;
   font-weight: 600;
   overflow-wrap: anywhere;
-}
-.operation-note {
-  padding: 12px 22px 18px;
-  color: var(--muted);
-  font-size: var(--text-caption);
 }
 .operation-footnote {
   display: flex;

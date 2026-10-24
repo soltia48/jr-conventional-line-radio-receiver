@@ -25,10 +25,7 @@
           height="40"
           alt=""
         />
-        <div>
-          <p class="eyebrow">JR Conventional-line Radio Receiver</p>
-          <h1>JR 在来線デジタル列車無線受信アプリ</h1>
-        </div>
+        <h1>JR 在来線デジタル列車無線受信アプリ</h1>
       </div>
     </header>
     <div id="session-bar" class="session-bar" role="region" aria-label="受信の操作と状態">
@@ -69,7 +66,6 @@
               id="auto-select"
               type="checkbox"
               checked
-              aria-describedby="selection-hint"
             />通話を自動選択</label
           >
           <span id="audio-state" class="muted">音声待機</span>
@@ -92,7 +88,6 @@
                 ><bdi id="band-low">352.53750</bdi><span>–</span
                 ><bdi id="band-high">352.66875</bdi> <small>MHz</small></span
               >
-              <span id="band-note">22 波 · 音声とデータを並列復号</span>
             </dd>
           </div>
           <div>
@@ -112,8 +107,7 @@
       <details id="source-panel" class="card source" open>
         <summary class="source-summary">
           <span class="source-heading">受信設定</span
-          ><span id="source-summary">RTL-TCP · 接続先未設定</span
-          ><span class="disclosure-hint">設定を開閉</span>
+          ><span id="source-summary">RTL-TCP · 接続先未設定</span>
         </summary>
         <fieldset id="settings">
           <legend class="sr-only">受信設定</legend>
@@ -139,9 +133,6 @@
                   組み込みに戻す
                 </button>
               </div>
-              <p>
-                停止中に変更できます。選択したファイルは次回起動時にも読み込みます。
-              </p>
             </details>
           </div>
           <p id="preset-status" class="preset-feedback" role="status"></p>
@@ -234,14 +225,12 @@
             role="group"
             aria-labelledby="rate-presets-label"
           >
-            <span id="rate-presets-label" class="rate-presets-label"
+            <span id="rate-presets-label" class="sr-only"
               >サンプルレートの候補</span
             >
           </div>
-          <p id="rate-hint" class="field-hint"></p>
-          <p id="source-hint" class="field-hint">
-            240,000 S/s で全 22 波をカバー。接続は「受信を開始」で行います。
-          </p>
+          <p id="rate-hint" class="field-hint" hidden></p>
+          <p id="source-hint" class="field-hint" hidden></p>
           <p id="field-error" class="field-error" hidden></p>
           <details id="soapy-options" class="advanced" hidden>
             <summary>SoapySDR の詳細設定</summary>
@@ -277,9 +266,7 @@
           /></label>
         </fieldset>
         <div class="source-foot">
-          <span id="capture-info"
-            >中心 352.603125 MHz · 設定は停止中に変更できます</span
-          ><span id="progress"></span>
+          <span id="capture-info"></span><span id="progress"></span>
         </div>
       </details>
       <div class="workspace-navigation">
@@ -305,8 +292,7 @@
                   id="channel-search"
                   type="search"
                   placeholder="周波数・割当を検索"
-                  autocomplete="off"
-                  aria-describedby="filter-note" /></label
+                  autocomplete="off" /></label
               ><label class="check-label" for="all"
                 ><input id="all" type="checkbox" checked /><span id="all-label"
                   >全 22 波を受信</span
@@ -335,10 +321,6 @@
                 </button>
               </div>
             </div>
-            <div class="filter-note">
-              <span id="filter-note">検索は表示だけを絞り込みます</span
-              ><a href="#monitor-title">選択波の詳細へ</a>
-            </div>
             <ul
               id="channels-simple"
               class="channel-grid"
@@ -364,9 +346,6 @@
               <button id="clear-search">検索を解除</button>
             </div>
             <p id="search-status" class="sr-only" role="status"></p>
-            <div class="table-note" id="preset-note">
-              割当情報を読み込み中です。件数は受信開始からの累計です。
-            </div>
           </details>
           <details id="monitor-panel" class="card monitor panel-disclosure" open>
             <summary id="monitor-title" class="panel-summary">
@@ -380,11 +359,7 @@
               </p>
               <p id="selected-label">D5 音声第1波</p>
             </div>
-            <div class="monitor-selection">
-              <p id="selection-hint" role="status">
-                先に始まった通話を優先します。手動で選ぶと固定します。
-              </p>
-            </div>
+            <p id="selection-hint" class="monitor-selection" role="status"></p>
             <div class="monitor-grid">
               <dl class="stats">
                 <div>
@@ -428,9 +403,8 @@
                   width="230"
                   height="230"
                   role="img"
-                  aria-label="差動シンボル分布。数値での品質指標は EVM と残留周波数に表示。"
+                  aria-label="差動シンボル分布"
                 ></canvas>
-                <figcaption>π/4-DQPSK<br />4,800 symbols/s</figcaption>
               </figure>
             </div>
             <div class="audio-controls">
@@ -452,19 +426,12 @@
                   <option value="common">一斉（旅客情報・運行把握）</option>
                 </select></label
               >
-              <p class="field-hint">受信を停止してから変更できます。</p>
             </details>
-            <p class="hint" id="monitor-note">
-              音声とデータは全受信チャンネルで復号します。選択波の音声を再生します。
-            </p>
           </details>
         </div>
         <section class="card operation-monitor" aria-labelledby="operation-title">
           <div class="section-title">
-            <div>
-              <h2 id="operation-title" tabindex="-1">運行把握モニタ</h2>
-              <p>線区別の遅延・在線情報</p>
-            </div>
+            <h2 id="operation-title" tabindex="-1">運行把握モニタ</h2>
             <span id="operation-state" class="badge" role="status">情報待ち</span>
           </div>
           <div id="operation-empty" class="empty compact">
@@ -476,7 +443,6 @@
             <dl class="operation-times">
               <div><dt id="operation-received-label">最終受信日時</dt><dd id="operation-received-time">不明</dd></div>
             </dl>
-            <p class="operation-note">受信日時は情報の作成日時ではありません。現在の運行状況を示すとは限りません。受信日時は日本時間で表示します。</p>
             <table class="operation-table">
               <caption class="sr-only">電文に含まれる線区別の遅延と在線数。不明は未提供の値です。</caption>
               <thead><tr>
@@ -493,16 +459,12 @@
           <div class="section-title">
             <div>
               <h2 id="messages-title" tabindex="-1">受信データ</h2>
-              <p id="data-status">RS / CRC 検証済みの情報を表示</p>
+              <p id="data-status"></p>
             </div>
             <span id="message-count" class="badge">0 件</span>
           </div>
-          <div class="message-channel-bar">
-            <p id="message-channel">選択波を読み込み中</p>
-            <a href="#channels-title">チャンネルを選ぶ</a>
-          </div>
           <div class="message-toolbar">
-            <span id="message-scope">選択波の最新 128 件まで</span
+            <a id="message-channel" href="#channels-title">選択波を読み込み中</a
             ><button id="pause-messages" aria-pressed="false">
               更新を一時停止
             </button>
@@ -523,11 +485,6 @@
         </div>
         <details id="recording-settings">
           <summary>保存内容・保存先</summary>
-          <p id="recording-hint" class="recording-hint">
-            受信対象の全チャンネルを保存します。消音や選択波の切り替えは保存に影響しません。
-            WAV は周波数別、JSONL はチャンネル情報付きで保存します。
-            保存の有効・無効、保存先、保存内容は次回起動時も引き継がれます。
-          </p>
           <fieldset id="output-options" class="output-options">
             <legend>保存する内容</legend>
             <label class="check-label"
@@ -535,7 +492,7 @@
                 id="output-audio"
                 type="checkbox"
                 checked
-              />音声通話（WAV）</label
+              />音声通話（WAV · 8 kHz モノラル）</label
             >
             <label class="check-label"
               ><input
@@ -559,16 +516,12 @@
                 placeholder="保存先を選択してください"
                 spellcheck="false"
                 autocomplete="off"
-                aria-describedby="recording-hint"
-                data-hint="recording-hint"
               />
             </label>
             <button id="record-browse" type="button">フォルダーを選択</button>
           </div>
           <div class="recording-info">
-            <p id="recording-summary">
-              受信を開始してから保存できます。8 kHz・16 bit・モノラル。
-            </p>
+            <p id="recording-summary"></p>
             <p id="recording-output" hidden></p>
           </div>
         </details>
@@ -620,18 +573,16 @@
         <button id="about-close" type="button" autofocus>閉じる</button>
       </div>
     </dialog>
-    <dialog id="route-dialog" aria-labelledby="route-title" aria-describedby="route-intro">
+    <dialog id="route-dialog" aria-labelledby="route-title">
       <div class="route-shell">
         <div class="route-heading">
-          <div><h2 id="route-title">路線から受信対象を選ぶ</h2>
-            <p id="route-intro">区間を選び、対応する音声・データ波をまとめて指定します。</p></div>
+          <h2 id="route-title">路線から受信対象を選ぶ</h2>
           <button id="route-close" type="button">閉じる</button>
         </div>
         <div class="route-content">
           <section class="route-search-pane" aria-label="路線・区間を探す">
             <label for="route-profile">受信プリセット<select id="route-profile"></select></label>
-            <label for="route-search">路線名・区間を検索<input id="route-search" type="search" placeholder="例：中央、甲府、D6" autocomplete="off" autofocus aria-describedby="route-search-hint" /></label>
-            <p id="route-search-hint" class="muted">複数選択できます。区間ごとの割当・変則割当を反映します。</p>
+            <label for="route-search">路線名・区間を検索<input id="route-search" type="search" placeholder="例：中央、甲府、D6" autocomplete="off" autofocus /></label>
             <p id="route-result-count" class="muted" role="status"></p>
             <ul id="route-results" aria-label="路線・区間" role="list"></ul>
             <div id="route-no-results" class="route-empty" hidden>

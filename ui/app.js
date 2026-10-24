@@ -285,9 +285,7 @@ async function restorePreferences(initial = false) {
     $("region").replaceChildren(option);
     buildRows();
     $("band-low").textContent = $("band-high").textContent = "—";
-    $("band-note").textContent = "プリセット未読込";
     $("all-label").textContent = "受信チャンネル未読込";
-    $("preset-note").textContent = "プリセットファイルを確認してください。";
     showPresetError(error);
   }
   renderPresetSource();
@@ -355,7 +353,7 @@ function setControls() {
   renderSelectionMode();
   renderChannelStates();
   $("channel-count").textContent =
-    `${presetCatalog.find((p) => p.id === activePresetId)?.label ?? "プリセット未読込"} · 受信対象 ${enabled.size} 波 · ${running ? "同時処理中" : "待機"}`;
+    `受信対象 ${enabled.size} / ${channels.length} 波`;
   $("all").checked = enabled.size === channels.length;
   $("all").indeterminate = enabled.size > 0 && enabled.size < channels.length;
   renderRecording();
@@ -363,12 +361,10 @@ function setControls() {
   operationMonitor.update(lastSnapshot, { channels, enabled, running, replay: sessionReplay });
 }
 function renderSelectionMode() {
-  const automatic = $("auto-select").checked;
-  const hint = automatic
-    ? "先に始まった通話を優先します。手動で選ぶと固定します。"
-    : "手動選択を固定中。受信バーの「通話を自動選択」で自動切替に戻せます。";
+  const hint = $("auto-select").checked ? "" : "手動選択で固定中";
   if ($("selection-hint").textContent !== hint)
     $("selection-hint").textContent = hint;
+  $("selection-hint").hidden = !hint;
 }
 $("auto-select").addEventListener("change", () => {
   selectionRevision++;
@@ -408,20 +404,17 @@ function renderRecording() {
   if ($("recording-state").textContent !== label)
     $("recording-state").textContent = $("bar-recording").textContent = label;
   $("recording-state").classList.toggle("active", active);
-  const idleMessage = recordingEnabled
-    ? "受信開始後に自動で保存します。"
-    : receiving
-      ? "保存を開始できます。"
-      : "受信を開始してから保存できます。";
+  // Only explain what the disabled buttons cannot: why and when saving starts.
   const summary =
     s.state === "idle"
-      ? `${idleMessage}音声は 8 kHz・16 bit・モノラル。`
-      : `WAV ${s.files} ファイル · 復号音声 ${(s.pcm_samples / 8000).toFixed(1)} 秒 · 生フレーム ${s.raw_frames ?? 0} 件 · データ電文 ${s.data_messages ?? 0} 件（全波合計）。受信停止時にも保存を終了します。`;
-  $("recording-summary").textContent =
-    summary +
-    (recordingEnabled && s.state !== "idle"
-      ? "次回受信時も自動で保存します。"
-      : "");
+      ? recordingEnabled
+        ? "受信開始後に自動で保存します"
+        : receiving
+          ? ""
+          : "受信を開始してから保存できます"
+      : `WAV ${s.files} ファイル · 復号音声 ${(s.pcm_samples / 8000).toFixed(1)} 秒 · 生フレーム ${s.raw_frames ?? 0} 件 · データ電文 ${s.data_messages ?? 0} 件（全波合計）`;
+  $("recording-summary").textContent = summary;
+  $("recording-summary").hidden = !summary;
   if (s.directory) {
     $("recording-output").textContent =
       `${active ? "保存フォルダー" : "保存したフォルダー"}：${s.directory}`;
@@ -441,7 +434,7 @@ function renderRecording() {
 function clearRecordingError() {
   recordingActionError = "";
   $("record-directory").removeAttribute("aria-invalid");
-  $("record-directory").setAttribute("aria-describedby", "recording-hint");
+  $("record-directory").removeAttribute("aria-describedby");
 }
 $("record-directory").addEventListener("input", () => {
   clearRecordingError();
@@ -474,10 +467,7 @@ async function startRecording(automatic = false) {
     $("recording-settings").open = true;
     recordingActionError = "保存先フォルダーを選択してください。";
     $("record-directory").setAttribute("aria-invalid", "true");
-    $("record-directory").setAttribute(
-      "aria-describedby",
-      "recording-error recording-hint",
-    );
+    $("record-directory").setAttribute("aria-describedby", "recording-error");
     renderRecording();
     $("record-directory").focus();
     return;
@@ -861,7 +851,7 @@ function detail(s) {
     : "—";
   $("data-status").textContent = s
     ? `有効 ${s.data.valid_frames} · 訂正 ${s.data.corrected_frames} · 電文拒否 ${s.data.rejected_messages}`
-    : "RS / CRC 検証済みの情報を表示";
+    : "";
   constellation(s?.constellation);
   showMessages(s?.messages ?? []);
 }
@@ -933,13 +923,8 @@ async function loadPresets(applyTuning = false) {
     $("band-high").textContent = (
       Math.max(...channels.map((c) => c.frequency_hz)) / 1e6
     ).toFixed(5);
-    $("band-note").textContent =
-      `割当 ${channels.length} 波 · チェックした波を並列復号`;
     $("all-label").textContent = `全 ${channels.length} 波を受信`;
-    $("preset-note").textContent =
-      `${preset.note} 変則割当は選択波の詳細に表示。件数は受信開始からの累計。`;
-    $("capture-info").textContent =
-      `中心 ${$("center").value} MHz · 設定は停止中に変更できます`;
+    $("capture-info").textContent = "";
     $("progress").textContent = "";
     $("state").textContent = "停止中";
     $("state").classList.remove("active");
@@ -1092,7 +1077,8 @@ function renderRate() {
       : kind === "rtl_tcp" && rate > 0 && !rtlTcpRateSupported(rate)
         ? "現在のレートは RTL-TCP の対応範囲外です。"
         : "";
-  const hint = kind === "wave" ? "" : `${problem}${range}${requirement}`;
+  // Stay quiet while the rate works; the pressed chip already says so.
+  const hint = kind === "wave" || !problem ? "" : `${problem}${range}${requirement}`;
   if ($("rate-hint").textContent !== hint) $("rate-hint").textContent = hint;
   $("rate-hint").hidden = !hint;
 }
@@ -1127,11 +1113,8 @@ function updateSource() {
   const preset = presetCatalog.find((p) => p.id === activePresetId)?.label;
   // The collapsed settings panel still names what will be received.
   $("source-summary").textContent = preset ? `${preset} · ${source}` : source;
-  $("source-hint").textContent = wave
-    ? "I は左、Q は右のステレオ WAV。サンプルレートはファイルから取得します。"
-    : tcp
-      ? "利用するサーバーの IP アドレスとポートを入力してください。接続設定は自動保存されます。受信対象の波を同時に受信します。RTL-TCP は設定値の読み戻しとサーバー側の欠落通知に対応していません。"
-      : "SoapySDR 対応デバイスを検索するか、詳細設定にデバイス引数を入力してください。接続設定は自動保存されます。";
+  $("source-hint").textContent = wave ? "I は左、Q は右チャンネル" : "";
+  $("source-hint").hidden = !wave;
 }
 $("input-kind").addEventListener("change", () => {
   clearError();
@@ -1289,9 +1272,6 @@ function updatePause() {
     ? "更新を再開"
     : "更新を一時停止";
   $("pause-messages").setAttribute("aria-pressed", String(messagesPaused));
-  $("message-scope").textContent = messagesPaused
-    ? "表示を一時停止中 · 受信と復号は継続"
-    : "選択波の最新 128 件まで";
 }
 $("pause-messages").addEventListener("click", () => {
   messagesPaused = !messagesPaused;
@@ -1356,7 +1336,7 @@ async function poll() {
           ? `${$("input-kind").value === "rtl_tcp" ? "要求中心" : "実効中心"} ${(s.center_hz / 1e6).toFixed(6)} MHz · ${s.sample_rate.toLocaleString()} S/s · ${$("input-kind").value === "rtl_tcp" ? "サーバー側欠落：通知なし" : "ソース欠落 " + s.source_overflows}`
           : s.running
             ? "接続を準備しています"
-            : "未接続 · 受信設定と接続先を確認してください";
+            : "";
         $("bar-locked").textContent = s.running
           ? s.channels.filter((c) => c.status.frame_locked).length
           : "—";

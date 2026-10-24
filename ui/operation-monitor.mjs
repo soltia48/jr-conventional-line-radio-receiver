@@ -45,7 +45,7 @@ export class OperationMonitorView {
     if (replay) state = `IQ再生 · ${state}`;
     this.text("operation-state", state);
     this.text("operation-received-time", receivedTime(monitor.last_received_at));
-    this.text("operation-received-label", replay ? "最終読取日時" : "最終受信日時");
+    this.text("operation-received-label", replay ? "最終読取日時（JST）" : "最終受信日時（JST）");
     this.text("operation-source", `${source.config.label} · ${(source.config.frequency_hz / 1e6).toFixed(5)} MHz`);
     this.text("operation-repetitions", `同一内容を ${monitor.receptions} 回受信`);
     const rows = monitor.summary.rows;
