@@ -12,7 +12,7 @@ The GitHub Actions **Release** workflow generates archives containing the GUI an
 | --- | --- | --- |
 | Linux x86_64 | Ubuntu 24.04 | `*-linux-x86_64.tar.gz` |
 | Windows x64 | Windows Server 2022 / MSVC | `*-windows-x86_64.zip` |
-| macOS Apple Silicon | macOS 14 | `*-macos-arm64.tar.gz` |
+| macOS Apple Silicon | macOS 15 | `*-macos-arm64.tar.gz` |
 | macOS Intel | macOS 15 | `*-macos-x86_64.tar.gz` |
 
 Extract the archive and run `jr-receiver-desktop` for the GUI or `jr-receiver` for the CLI; Windows binaries have the `.exe` extension.

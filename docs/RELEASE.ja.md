@@ -12,7 +12,7 @@ GitHub Actions の **Release** ワークフローで、GUI と CLI を含むア�
 | --- | --- | --- |
 | Linux x86_64 | Ubuntu 24.04 | `*-linux-x86_64.tar.gz` |
 | Windows x64 | Windows Server 2022 / MSVC | `*-windows-x86_64.zip` |
-| macOS Apple Silicon | macOS 14 | `*-macos-arm64.tar.gz` |
+| macOS Apple Silicon | macOS 15 | `*-macos-arm64.tar.gz` |
 | macOS Intel | macOS 15 | `*-macos-x86_64.tar.gz` |
 
 アーカイブを展開し、GUI は `jr-receiver-desktop`（Windows は `.exe`）、CLI は `jr-receiver` を起動します。
