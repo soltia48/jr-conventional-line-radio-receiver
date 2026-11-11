@@ -93,9 +93,9 @@ At runtime, add its DLL directory to `PATH` or place the DLL beside the executab
 ## Building and publishing binaries
 
 **Trial build:** select Actions → Release → Run workflow. Artifacts for all four targets are retained for 14 days.
-Manual runs never publish a GitHub Release, even when run on a tag. Branch builds use names such as `v1.7.0-dev-<short-commit-id>`.
+Manual runs never publish a GitHub Release, even when run on a tag. Branch builds use names such as `v1.8.0-dev-<short-commit-id>`.
 
-**Publish:** set the three types of product manifest listed above to the same version, then push a matching tag such as `v1.7.0`.
+**Publish:** set the three types of product manifest listed above to the same version, then push a matching tag such as `v1.8.0`.
 A mismatch between the tag and manifest versions fails the workflow.
 After the shared CI checks pass, Release builds all four targets and also runs the Rust test suite on macOS and Windows.
 Each archive's CLI is checked for successful loading of the built-in presets. A GitHub Release is created only if all four targets succeed.

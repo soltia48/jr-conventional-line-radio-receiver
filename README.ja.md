@@ -2,7 +2,7 @@
 
 [English](README.md) | 日本語
 
-バージョン: **v1.7.0**
+バージョン: **v1.8.0**
 
 作者: KIRISHIKI Yudai <yudai.kirishiki@protonmail.com>
 
@@ -30,7 +30,7 @@ cargo run --release -p jr-receiver-desktop
 
 受信には `--release` ビルドを使ってください。`Cargo.lock` はリポジトリに含まれています。
 GitHub Actions で Linux x86_64、Windows x64、macOS（Apple Silicon / Intel）向けの GUI・CLI バイナリをビルドします。
-手動実行では成果物を作るだけです。`v1.7.0` のようにバージョンと一致するタグを push すると、GitHub Release にも公開します。
+手動実行では成果物を作るだけです。`v1.8.0` のようにバージョンと一致するタグを push すると、GitHub Release にも公開します。
 Windows 版には SoapySDR の DLL が同梱され、Linux / macOS 版はシステムにインストールされた SoapySDR 0.8 を使います。
 ビルド、実行時の依存関係、CI、公開の手順は[リリースガイド](docs/RELEASE.ja.md)を参照してください。
 ローカルでのビルドと起動は Linux でのみ確認しています。インストーラー、配布者の署名、公証はありません。

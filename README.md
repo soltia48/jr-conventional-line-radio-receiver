@@ -2,7 +2,7 @@
 
 English | [日本語](README.ja.md)
 
-Version: **v1.7.0**
+Version: **v1.8.0**
 
 Author: KIRISHIKI Yudai <yudai.kirishiki@protonmail.com>
 
@@ -31,7 +31,7 @@ cargo run --release -p jr-receiver-desktop
 
 Use `--release` for reception. `Cargo.lock` is committed.
 GitHub Actions builds GUI and CLI binaries for Linux x86_64, Windows x64, and macOS Apple Silicon / Intel.
-Manual runs only produce artifacts; pushing a tag that matches the version, such as `v1.7.0`, also publishes a GitHub Release.
+Manual runs only produce artifacts; pushing a tag that matches the version, such as `v1.8.0`, also publishes a GitHub Release.
 Windows archives bundle the SoapySDR DLL; Linux and macOS use the system's SoapySDR 0.8.
 See the [release guide](docs/RELEASE.md) for builds, runtime dependencies, CI, and publishing.
 Local builds and launches have been tested on Linux only. There are no installers, publisher signatures, or notarization.

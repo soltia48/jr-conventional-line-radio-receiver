@@ -1650,7 +1650,7 @@ dependencies = [
 
 [[package]]
 name = "jr-receiver"
-version = "1.7.0"
+version = "1.8.0"
 dependencies = [
  "receiver-core",
  "serde_json",
@@ -1658,7 +1658,7 @@ dependencies = [
 
 [[package]]
 name = "jr-receiver-desktop"
-version = "1.7.0"
+version = "1.8.0"
 dependencies = [
  "objc2",
  "objc2-app-kit",
@@ -2518,7 +2518,7 @@ checksum = "20675572f6f24e9e76ef639bc5552774ed45f1c30e2951e1e99c59888861c539"
 
 [[package]]
 name = "receiver-core"
-version = "1.7.0"
+version = "1.8.0"
 dependencies = [
  "chrono",
  "encoding_rs",
