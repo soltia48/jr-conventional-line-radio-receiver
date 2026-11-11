@@ -568,6 +568,13 @@ function buildRows() {
   rows.clear();
   $("channels").replaceChildren();
   $("channels-simple").replaceChildren();
+  $("band-map").replaceChildren();
+  // The band map places each channel at its frequency so gaps in a plan show.
+  const low = Math.min(...channels.map((c) => c.frequency_hz));
+  const slots = channels.length
+    ? Math.round((Math.max(...channels.map((c) => c.frequency_hz)) - low) / 6250) + 1
+    : 1;
+  $("band-map").style.setProperty("--slots", slots);
   for (const c of channels) {
     const tr = el("tr");
     const box = el("td");
@@ -599,7 +606,11 @@ function buildRows() {
     simpleButton.append(simpleSync);
     item.append(simpleCheck.label, simpleButton);
     $("channels-simple").append(item);
+    const band = el("li");
+    band.style.gridColumn = String(Math.round((c.frequency_hz - low) / 6250) + 1);
+    $("band-map").append(band);
     rows.set(c.id, {
+      band,
       tr,
       check,
       format,
@@ -648,6 +659,15 @@ function renderChannelStates() {
     r.sync.className = tone;
     r.simple.sync.className = `compact-state ${tone}`;
     r.simple.item.classList.toggle("excluded", !included);
+    r.band.dataset.state = !included
+      ? "excluded"
+      : c?.error
+        ? "error"
+        : running && lastSnapshot?.active_calls?.includes(id)
+          ? "call"
+          : locked
+            ? "locked"
+            : "idle";
     r.voice.textContent = c ? c.status.voice_frames.toLocaleString() : "—";
     r.data.textContent = c ? c.status.data.valid_frames.toLocaleString() : "—";
   }
@@ -673,6 +693,7 @@ function select(id, manual = false) {
   for (const [key, r] of rows) {
     r.tr.classList.toggle("selected", key === id);
     r.simple.item.classList.toggle("selected", key === id);
+    r.band.classList.toggle("selected", key === id);
     for (const button of [r.button, r.simple.button])
       button.setAttribute("aria-pressed", String(key === id));
   }

@@ -1,45 +1,50 @@
 :root {
   color-scheme: dark;
-  --slate-950: #0d141b;
-  --slate-900: #141e28;
-  --slate-850: #1a2734;
-  --slate-800: #223140;
-  --slate-700: #2d3e4c;
-  --slate-500: #71869a;
-  --slate-300: #acbecd;
-  --slate-100: #e5edf3;
-  --blue-300: #9bcaff;
-  --blue-950: #102d4a;
-  --mint-300: #72dfc1;
-  --mint-950: #17392f;
+  /* Green-tinted graphite neutrals. */
+  --panel-950: #121916;
+  --panel-900: #19221f;
+  --panel-850: #202b27;
+  --panel-800: #283530;
+  --panel-700: #34443e;
+  --panel-500: #74887f;
+  --panel-300: #afbeb6;
+  --panel-100: #e6ede8;
+  /* Amber marks frequency readouts and the one primary action. */
+  --amber-300: #ffbe5c;
+  --amber-950: #2a1f0e;
+  /* Green is synchronized, red is an error. */
+  --signal-green-300: #72d998;
+  --signal-green-950: #173224;
   --red-200: #ffb7ab;
   --red-950: #472b2b;
-  --bg: var(--slate-950);
-  --surface: var(--slate-900);
-  --inset: var(--slate-950);
-  --surface-raised: var(--slate-850);
-  --control: var(--slate-800);
-  --line: var(--slate-700);
-  --control-border: var(--slate-500);
-  --text: var(--slate-100);
-  --muted: var(--slate-300);
-  --accent: var(--blue-300);
-  --on-accent: var(--blue-950);
-  --selected: var(--blue-950);
-  --success: var(--mint-300);
-  --success-bg: var(--mint-950);
+  --bg: var(--panel-950);
+  --surface: var(--panel-900);
+  --inset: var(--panel-950);
+  --surface-raised: var(--panel-850);
+  --control: var(--panel-800);
+  --line: var(--panel-700);
+  --control-border: var(--panel-500);
+  --text: var(--panel-100);
+  --muted: var(--panel-300);
+  --accent: var(--amber-300);
+  --on-accent: var(--amber-950);
+  --selected: var(--panel-850);
+  --readout: var(--amber-300);
+  --success: var(--signal-green-300);
+  --success-bg: var(--signal-green-950);
   --danger: var(--red-200);
   --danger-bg: var(--red-950);
-  --focus: var(--blue-300);
-  --plot-grid: var(--slate-500);
-  --plot-signal: var(--mint-300);
-  --radius: 12px;
-  --radius-control: 6px;
+  --focus: var(--amber-300);
+  --plot-grid: var(--panel-500);
+  --plot-signal: var(--signal-green-300);
+  --radius: 6px;
+  --radius-control: 4px;
   --text-caption: 0.8125rem;
   --text-body: 0.875rem;
   --text-heading: 1.125rem;
   --text-title: 1.375rem;
-  font-family: "Noto Sans JP", "Yu Gothic UI", system-ui, sans-serif;
+  --font-ui: "BIZ UDPGothic", "Hiragino Sans", "Noto Sans CJK JP", "Noto Sans JP", "Yu Gothic UI", system-ui, sans-serif;
+  font-family: var(--font-ui);
   font-size: 16px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
@@ -102,7 +107,7 @@ input::placeholder {
   opacity: 1;
 }
 input[type="checkbox"] {
-  accent-color: var(--accent);
+  accent-color: var(--text);
   width: 20px;
   min-height: 20px;
   height: 20px;
@@ -110,7 +115,7 @@ input[type="checkbox"] {
   flex-shrink: 0;
 }
 input[type="range"] {
-  accent-color: var(--accent);
+  accent-color: var(--text);
   padding: 0;
   border: 0;
   min-height: 40px;
@@ -128,7 +133,7 @@ label > :is(input, select),
   margin-block-start: 6px;
 }
 a {
-  color: var(--accent);
+  color: var(--text);
   text-underline-offset: 0.2em;
   text-decoration-thickness: from-font;
 }
@@ -245,8 +250,9 @@ small,
   min-width: 0;
 }
 #bar-frequency {
-  font-family: ui-monospace, monospace;
-  font-size: var(--text-body);
+  font-variant-numeric: tabular-nums;
+  font-size: 1rem;
+  color: var(--readout);
 }
 .session-channel-label {
   overflow-wrap: anywhere;
@@ -316,11 +322,50 @@ main {
   overflow-wrap: anywhere;
 }
 .band-range {
-  font-family: ui-monospace, monospace;
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
 }
-.band-range span {
-  color: var(--muted);
-  margin-inline: 4px;
+.band-range bdi {
+  font-variant-numeric: tabular-nums;
+  font-size: 1rem;
+}
+/* One bar per channel at its frequency: lit bars are synchronized, tall amber bars carry a call. */
+.band-map {
+  --slots: 22;
+  display: grid;
+  grid-template-columns: repeat(var(--slots), 6px);
+  column-gap: 3px;
+  align-items: end;
+  height: 20px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.band-map li {
+  grid-row: 1;
+  height: 10px;
+  border-radius: 1px;
+  background: var(--panel-500);
+}
+.band-map li[data-state="excluded"] {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.band-map li[data-state="locked"] {
+  background: var(--success);
+}
+.band-map li[data-state="call"] {
+  height: 20px;
+  background: var(--readout);
+}
+.band-map li[data-state="error"] {
+  background: var(--danger);
+}
+.band-map li.selected {
+  outline: 1px solid var(--text);
+  outline-offset: 2px;
 }
 .card {
   background: var(--surface);
@@ -379,9 +424,9 @@ fieldset {
   font-variant-numeric: tabular-nums;
 }
 .rate-presets button[aria-pressed="true"] {
-  border-color: var(--accent);
+  border-color: var(--text);
   background: var(--selected);
-  color: var(--accent);
+  color: var(--text);
 }
 #device-group,
 .file-row {
@@ -580,9 +625,9 @@ fieldset {
   padding-inline: 12px;
 }
 .view-switch button[aria-pressed="true"] {
-  border-color: var(--accent);
+  border-color: var(--text);
   background: var(--selected);
-  color: var(--accent);
+  color: var(--text);
 }
 .channel-grid {
   display: grid;
@@ -598,13 +643,13 @@ fieldset {
   min-width: 0;
   padding: 2px;
   border: 1px solid var(--line);
-  /* Concentric with the 6px button: 2px padding + 1px border. */
-  border-radius: 9px;
+  /* Concentric with the 4px button: 2px padding + 1px border. */
+  border-radius: 7px;
   background: var(--inset);
 }
 .channel-tile.selected {
   background: var(--selected);
-  border-color: var(--accent);
+  border-color: var(--readout);
 }
 .channel-tile .row-check {
   min-width: 40px;
@@ -632,7 +677,6 @@ fieldset {
 }
 .frequency-unit {
   color: var(--muted);
-  font-family: "Noto Sans JP", "Yu Gothic UI", system-ui, sans-serif;
   font-size: 0.75rem;
 }
 .compact-state {
@@ -690,14 +734,17 @@ tr.selected {
   display: block;
 }
 .channel-select[aria-pressed="true"] {
-  border-inline-start: 2px solid var(--accent);
+  border-inline-start: 2px solid var(--readout);
 }
 .frequency {
   display: block;
-  font-family: ui-monospace, monospace;
-  font-size: 0.9375rem;
-  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+  font-size: 1rem;
   white-space: nowrap;
+}
+.channel-tile.selected .frequency,
+tr.selected .frequency {
+  color: var(--readout);
 }
 .channel-label {
   display: block;
@@ -727,13 +774,17 @@ tr.selected {
   padding: 16px 22px 8px;
 }
 .frequency-heading > p:first-child {
-  font-family: ui-monospace, monospace;
-  font-size: 2rem;
+  font-size: 2.5rem;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
-  line-height: 1.3;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: var(--readout);
 }
 .frequency-heading .unit {
-  font-size: 0.875rem;
+  font-size: 1rem;
+  font-weight: 400;
+  letter-spacing: 0;
 }
 #selected-label {
   color: var(--muted);
@@ -1284,7 +1335,7 @@ body:has(#about-dialog[open]) {
     padding: 16px 16px 8px;
   }
   .frequency-heading > p:first-child {
-    font-size: 1.625rem;
+    font-size: 2rem;
   }
   .monitor-grid {
     padding-inline: 16px;
