@@ -37,8 +37,8 @@
   --focus: var(--amber-300);
   --plot-grid: var(--panel-500);
   --plot-signal: var(--signal-green-300);
-  --radius: 6px;
-  --radius-control: 4px;
+  --radius: 8px;
+  --radius-control: 6px;
   --text-caption: 0.8125rem;
   --text-body: 0.875rem;
   --text-heading: 1.125rem;
@@ -55,6 +55,7 @@
 }
 html {
   scroll-padding-block-start: var(--session-bar-height, 0px);
+  background: var(--bg);
 }
 body {
   margin: 0;
@@ -172,90 +173,76 @@ small,
   font-size: var(--text-caption);
   font-weight: 400;
 }
-.topbar {
-  max-width: 1800px;
-  margin-inline: auto;
-  padding: 24px 32px;
+/* App shell: toolbar, panes and status bar fill the window; panes scroll on their own. */
+.app {
   display: flex;
-  justify-content: space-between;
-  gap: 24px;
-  align-items: center;
+  flex-direction: column;
+  min-height: 100dvh;
 }
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  min-width: 0;
-}
-.brand-icon {
-  display: block;
-  width: 40px;
-  height: auto;
-  flex: 0 0 40px;
-  object-fit: contain;
-}
-.session {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  flex-wrap: wrap;
-}
-/* Session controls and live state stay reachable while monitoring. */
 .session-bar {
-  background: var(--bg);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 20px;
+  padding: 10px 16px;
+  background: var(--surface);
   border-block-end: 1px solid var(--line);
   z-index: 10;
 }
-.session-bar-inner {
-  max-width: 1800px;
-  margin-inline: auto;
-  padding: 10px 32px;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px 32px;
+.session-bar button {
+  min-height: 36px;
+  padding-block: 6px;
 }
-.session-facts {
+.brand-icon {
+  display: block;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  object-fit: contain;
+}
+.session,
+.recording-control {
   display: flex;
-  flex-wrap: wrap;
-  gap: 4px 24px;
-  flex: 1 1 18rem;
-  min-width: 0;
+  gap: 8px;
+  align-items: center;
+}
+.sync-count {
+  color: var(--muted);
   font-size: var(--text-caption);
   font-variant-numeric: tabular-nums;
-}
-.session-facts > div {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  min-width: 0;
-}
-.session-facts dt {
-  color: var(--muted);
   white-space: nowrap;
 }
-.session-facts dd {
+.sync-count strong {
+  color: var(--text);
+  font-weight: 600;
+}
+.listening-control {
   display: flex;
+  align-items: center;
   flex-wrap: wrap;
-  align-items: baseline;
-  gap: 4px 10px;
-  min-width: 0;
+  gap: 0 16px;
+  margin-inline-start: auto;
+  font-size: var(--text-caption);
 }
-#bar-channel {
+.settings-open {
   display: inline-flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 4px;
-  min-height: 24px;
+  align-items: center;
+  gap: 8px;
+  max-width: 24rem;
   min-width: 0;
 }
-#bar-frequency {
-  font-variant-numeric: tabular-nums;
-  font-size: 1rem;
-  color: var(--readout);
+.settings-open svg {
+  flex-shrink: 0;
 }
-.session-channel-label {
-  overflow-wrap: anywhere;
+#source-summary {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--text-caption);
+}
+/* An unset RTL-TCP server is the one thing that blocks a first start. */
+.settings-open.attention {
+  border-color: var(--accent);
 }
 @media (min-width: 36.01rem) and (min-height: 36rem) {
   .session-bar {
@@ -263,80 +250,83 @@ small,
     top: 0;
   }
 }
-.badge {
-  font-variant-numeric: tabular-nums;
-  display: inline-flex;
+.alerts {
+  padding-inline: 16px;
+}
+.alerts:not(:has(> :not([hidden], .sr-only))) {
+  display: none;
+}
+.workspace {
+  --channels-width: 23rem;
+  --live-min: 40rem;
+  flex: 1;
+  display: grid;
+  grid-template-columns: var(--channels-width) minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 12px;
+  padding: 12px 16px;
+  min-height: 0;
+}
+/* The detailed table widens the channel pane only into room the live panes can spare. */
+.workspace.detailed {
+  --channels-width: max(23rem, min(40rem, 100% - var(--live-min) - 12px));
+}
+.pane {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.channels {
+  grid-row: 1 / -1;
+}
+.monitor {
+  grid-column: 2 / -1;
+}
+.pane-head {
+  display: flex;
   align-items: center;
-  gap: 7px;
-  font-size: var(--text-caption);
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px 10px;
+}
+.pane-head h2 {
+  font-size: var(--text-body);
+}
+.pane-meta,
+.pane-note:not(:empty) {
   color: var(--muted);
-  background: var(--control);
-  padding: 5px 10px;
-  border-radius: 6px;
-  white-space: nowrap;
-}
-#state::before {
-  content: "";
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: currentColor;
-}
-.badge.active {
-  color: var(--success);
-  background: var(--success-bg);
-}
-main {
-  max-width: 1800px;
-  margin-inline: auto;
-  padding: 0 32px 24px;
-}
-/* Aggregate counters are context, not the task: one quiet line. */
-.overview {
-  padding-block: 12px;
-}
-.totals {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 28px;
   font-size: var(--text-caption);
   font-variant-numeric: tabular-nums;
 }
-.totals > div {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 2px 8px;
-  min-width: 0;
+.pane-note:not(:empty) {
+  padding: 0 16px 8px;
 }
-.totals dt {
-  color: var(--muted);
-  white-space: nowrap;
-}
-.totals dd {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 2px 8px;
-  min-width: 0;
-  overflow-wrap: anywhere;
+.pane-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
 }
 .band-range {
-  display: inline-flex;
-  flex-wrap: wrap;
+  display: flex;
   align-items: center;
-  gap: 4px 10px;
-}
-.band-range bdi {
+  gap: 10px;
+  padding: 0 16px 12px;
+  color: var(--muted);
+  font-size: var(--text-caption);
   font-variant-numeric: tabular-nums;
-  font-size: 1rem;
 }
 /* One bar per channel at its frequency: lit bars are synchronized, tall amber bars carry a call. */
 .band-map {
   --slots: 22;
+  flex: 1;
   display: grid;
-  grid-template-columns: repeat(var(--slots), 6px);
-  column-gap: 3px;
+  grid-template-columns: repeat(var(--slots), minmax(2px, 1fr));
+  column-gap: 2px;
   align-items: end;
   height: 20px;
   margin: 0;
@@ -367,24 +357,111 @@ main {
   outline: 1px solid var(--text);
   outline-offset: 2px;
 }
-.card {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  min-width: 0;
+.channel-toolbar {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 8px 12px;
+  align-items: center;
+  padding: 0 16px 12px;
+  border-block-end: 1px solid var(--line);
 }
-.source-summary {
-  padding: 16px 22px;
-  font-size: var(--text-body);
+.channel-toolbar button {
+  min-height: 36px;
+  padding-block: 6px;
 }
-.source-heading {
-  font-weight: 600;
-  margin-inline: 6px 20px;
+.search-label input {
+  margin: 0;
+  min-height: 36px;
+  padding-block: 6px;
 }
-#source-summary {
+.channel-toolbar .check-label {
+  white-space: nowrap;
+  min-height: 36px;
+  font-size: var(--text-caption);
+}
+.view-switch {
+  display: flex;
+  gap: 4px;
+  justify-self: end;
+}
+.view-switch button {
+  padding-inline: 12px;
+  font-size: var(--text-caption);
+}
+.view-switch button[aria-pressed="true"] {
+  border-color: var(--text);
+  background: var(--selected);
+  color: var(--text);
+}
+.route-feedback:empty {
+  display: none;
+}
+.route-feedback {
+  padding: 10px 16px;
   color: var(--muted);
+  font-size: var(--text-caption);
+  border-block-end: 1px solid var(--line);
   overflow-wrap: anywhere;
 }
+.channel-list {
+  display: grid;
+  gap: 2px;
+  padding: 8px;
+  margin: 0;
+  list-style: none;
+}
+.channel-tile {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  min-width: 0;
+  border-radius: var(--radius-control);
+}
+.channel-tile.selected {
+  background: var(--selected);
+}
+.channel-tile .row-check {
+  min-width: 36px;
+  min-height: 40px;
+}
+.channel-tile .channel-select {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  min-height: 40px;
+  padding: 8px 10px 8px 6px;
+  border: 0;
+  border-inline-start: 2px solid transparent;
+  border-radius: 0 var(--radius-control) var(--radius-control) 0;
+}
+.channel-tile .channel-identity {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+.channel-tile .frequency {
+  font-size: var(--text-body);
+}
+.channel-tile .channel-label {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--text-caption);
+}
+.channel-tile.excluded .frequency {
+  color: var(--muted);
+}
+.frequency-unit {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+.compact-state {
+  font-size: var(--text-caption);
+  white-space: nowrap;
+}
+
 summary {
   cursor: pointer;
   min-height: 40px;
@@ -394,21 +471,7 @@ fieldset {
   min-width: 0;
   border: 0;
   margin: 0;
-  padding: 8px 22px 20px;
-}
-.source-grid {
-  display: grid;
-  grid-template-columns: 1.1fr 2fr 1.2fr 1fr 0.8fr;
-  gap: 16px;
-  align-items: start;
-}
-.source-grid > * {
-  min-width: 0;
-}
-.tcp-fields {
-  display: grid;
-  grid-template-columns: minmax(0, 1.8fr) minmax(0, 1fr);
-  gap: 12px;
+  padding: 0;
 }
 .rate-presets {
   display: flex;
@@ -458,115 +521,6 @@ fieldset {
   gap: 16px;
   margin-block-start: 12px;
 }
-.ppm-field {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-block-start: 12px;
-  flex-wrap: wrap;
-}
-.ppm-field input {
-  width: 7rem;
-  margin: 0;
-}
-.source-foot {
-  border-block-start: 1px solid var(--line);
-  padding: 12px 22px;
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-  color: var(--muted);
-  font-size: var(--text-caption);
-  font-variant-numeric: tabular-nums;
-}
-.workspace {
-  display: grid;
-  grid-template-columns: minmax(0, 1.06fr) minmax(0, 1fr);
-  align-items: start;
-  gap: 24px;
-  margin-block-start: 16px;
-}
-.workspace-navigation,
-.workspace-navigation nav,
-.listening-control {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px 24px;
-}
-.workspace-navigation {
-  justify-content: space-between;
-  margin-block-start: 24px;
-}
-.workspace-navigation a,
-#message-channel {
-  display: inline-flex;
-  align-items: center;
-  min-height: 40px;
-  padding-block: 8px;
-}
-.listening-control {
-  gap: 0 20px;
-  font-size: var(--text-caption);
-}
-.workspace-tools {
-  grid-column: 1 / -1;
-  display: grid;
-  grid-template-columns: inherit;
-  align-items: start;
-  gap: 24px;
-}
-.panel-summary {
-  padding: 16px 22px;
-  border-radius: var(--radius);
-}
-.panel-summary h2 {
-  display: inline;
-  font-size: var(--text-heading);
-}
-.panel-summary-meta {
-  display: block;
-  margin-block-start: 6px;
-  margin-inline-start: 1.25rem;
-  color: var(--muted);
-  font-size: var(--text-caption);
-  font-variant-numeric: tabular-nums;
-  overflow-wrap: anywhere;
-}
-.panel-disclosure[open] > .panel-summary {
-  border-end-start-radius: 0;
-  border-end-end-radius: 0;
-  border-block-end: 1px solid var(--line);
-}
-.section-title {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 22px;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-.section-title p:not(:empty) {
-  color: var(--muted);
-  font-size: var(--text-caption);
-  font-variant-numeric: tabular-nums;
-  margin-block-start: 6px;
-}
-.region {
-  min-width: 9rem;
-  max-width: 100%;
-}
-.preset-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: end;
-  gap: 8px 24px;
-  margin-block-end: 16px;
-}
-.preset-row .region {
-  flex: 0 1 18rem;
-}
 .preset-settings {
   margin: 0;
   color: var(--muted);
@@ -591,20 +545,6 @@ fieldset {
 #preset-status:empty {
   padding-block: 0;
 }
-.channel-toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  align-items: center;
-  padding: 16px 22px 0;
-}
-.search-label {
-  flex: 1 1 10rem;
-  min-width: 0;
-}
-.search-label input {
-  margin: 0;
-}
 .check-label {
   display: inline-flex;
   align-items: center;
@@ -612,76 +552,6 @@ fieldset {
   min-height: 40px;
   color: var(--text);
   cursor: pointer;
-}
-.channel-toolbar .check-label {
-  white-space: nowrap;
-}
-.view-switch {
-  display: flex;
-  gap: 4px;
-}
-.view-switch button {
-  flex: 1;
-  padding-inline: 12px;
-}
-.view-switch button[aria-pressed="true"] {
-  border-color: var(--text);
-  background: var(--selected);
-  color: var(--text);
-}
-.channel-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14.5rem), 1fr));
-  gap: 8px;
-  padding: 0 16px 16px;
-  margin: 0;
-  list-style: none;
-}
-.channel-tile {
-  display: grid;
-  grid-template-columns: 40px minmax(0, 1fr);
-  min-width: 0;
-  padding: 2px;
-  border: 1px solid var(--line);
-  /* Concentric with the 4px button: 2px padding + 1px border. */
-  border-radius: 7px;
-  background: var(--inset);
-}
-.channel-tile.selected {
-  background: var(--selected);
-  border-color: var(--readout);
-}
-.channel-tile .row-check {
-  min-width: 40px;
-  min-height: 44px;
-}
-.channel-tile .channel-select {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 8px;
-  align-items: center;
-  min-height: 56px;
-  padding: 6px 8px;
-  border-inline-start-width: 2px;
-}
-.channel-identity {
-  display: block;
-  min-width: 0;
-}
-.channel-tile .channel-label {
-  font-size: var(--text-caption);
-  line-height: 1.5;
-}
-.channel-tile.excluded .frequency {
-  color: var(--muted);
-}
-.frequency-unit {
-  color: var(--muted);
-  font-size: 0.75rem;
-}
-.compact-state {
-  font-size: var(--text-caption);
-  white-space: nowrap;
 }
 table {
   width: 100%;
@@ -770,18 +640,27 @@ tr.selected .frequency {
 .channel-error {
   color: var(--danger);
 }
-.frequency-heading {
-  padding: 16px 22px 8px;
+.monitor {
+  display: grid;
+  grid-template-columns: minmax(14rem, 1fr) minmax(0, 2fr) minmax(6rem, 9.5rem);
+  align-items: center;
+  gap: 16px 28px;
+  padding: 18px 20px 0;
+  container-type: inline-size;
 }
-.frequency-heading > p:first-child {
+.frequency-heading {
+  min-width: 0;
+}
+.frequency-readout {
   font-size: 2.5rem;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.02em;
-  line-height: 1.2;
+  line-height: 1.15;
   color: var(--readout);
+  white-space: nowrap;
 }
-.frequency-heading .unit {
+.frequency-readout .unit {
   font-size: 1rem;
   font-weight: 400;
   letter-spacing: 0;
@@ -789,28 +668,26 @@ tr.selected .frequency {
 #selected-label {
   color: var(--muted);
   font-size: var(--text-caption);
-  margin-block-start: 8px;
+  margin-block-start: 6px;
 }
-.monitor-grid {
-  padding: 0 22px 22px;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(140px, 0.7fr);
-  gap: 24px;
-  align-items: center;
+.monitor-selection {
+  color: var(--accent);
+  font-size: var(--text-caption);
+  margin-block-start: 6px;
 }
 .stats {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 18px 16px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px 16px;
 }
 .stats dt {
   color: var(--muted);
   font-size: 0.75rem;
 }
 .stats dd {
-  font-size: 1.0625rem;
+  font-size: 1rem;
   font-weight: 500;
-  margin-block-start: 5px;
+  margin-block-start: 4px;
   font-variant-numeric: tabular-nums;
   overflow-wrap: anywhere;
 }
@@ -820,7 +697,6 @@ abbr {
 }
 .monitor figure {
   margin: 0;
-  text-align: center;
   min-width: 0;
 }
 canvas {
@@ -831,88 +707,22 @@ canvas {
   background: var(--inset);
   border: 1px solid var(--line);
 }
-.recording {
-  margin-block: 24px 0;
-}
-.recording-bar,
-.recording-heading,
-.recording-actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 12px;
-}
-.recording-bar {
-  justify-content: space-between;
-  padding: 16px 22px 4px;
-}
-.recording-actions {
-  gap: 8px;
-}
-#recording-settings > summary {
-  padding: 8px 22px 12px;
-  color: var(--muted);
-  font-size: var(--text-caption);
-}
-#recording-error {
-  margin: 0;
-  padding: 0 22px 16px;
-  overflow-wrap: anywhere;
-}
-.recording-controls {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: end;
-  gap: 12px;
-  padding-inline: 22px;
-}
-.recording-controls label {
-  flex: 1 1 22rem;
-  min-width: 0;
-}
-.recording-controls button {
-  flex: 0 1 auto;
-}
-.output-options {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 24px;
-}
-.output-options legend {
-  font-size: var(--text-caption);
-  color: var(--muted);
-  padding: 0;
-}
-.monitor-selection {
-  padding: 0 22px 16px;
-  color: var(--muted);
-  font-size: var(--text-caption);
-}
-.recording-info {
-  padding: 12px 22px 20px;
-  font-size: var(--text-caption);
-  font-variant-numeric: tabular-nums;
-  color: var(--muted);
-  overflow-wrap: anywhere;
-}
-.recording-info p + p {
-  margin-block-start: 8px;
-}
 .audio-controls {
+  grid-column: 1 / -1;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 12px 22px;
-  border-block: 1px solid var(--line);
   flex-wrap: wrap;
+  gap: 8px 28px;
+  margin-inline: -20px;
+  padding: 6px 20px;
+  border-block-start: 1px solid var(--line);
 }
 .volume {
   display: flex;
   align-items: center;
   gap: 12px;
-  flex: 1;
-  min-width: 190px;
+  flex: 0 1 22rem;
+  min-width: 12rem;
 }
 .volume input {
   margin: 0;
@@ -920,45 +730,62 @@ canvas {
   min-width: 40px;
 }
 .volume output {
-  min-width: 3ch;
+  min-width: 4ch;
   font-variant-numeric: tabular-nums;
 }
 .decoder-options {
-  padding: 6px 22px 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  color: var(--muted);
+  font-size: var(--text-caption);
+}
+.decoder-options[open] {
+  flex-wrap: wrap;
 }
 .decoder-options label {
-  max-width: 22rem;
-  margin-block-start: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.decoder-options select {
+  margin: 0;
+  width: auto;
+  min-height: 32px;
+  padding-block: 4px;
+}
+@container (max-width: 52rem) {
+  .stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 .message-toolbar {
   display: flex;
   gap: 12px;
   align-items: center;
   justify-content: space-between;
-  padding: 0 22px 16px;
+  padding: 0 16px 8px;
   flex-wrap: wrap;
   color: var(--muted);
   font-size: 0.75rem;
 }
 .message-toolbar button {
+  min-height: 32px;
+  padding-block: 4px;
   font-size: 0.75rem;
 }
 #message-channel {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
   font-variant-numeric: tabular-nums;
   overflow-wrap: anywhere;
   min-width: 0;
 }
-/* The open monitor shows the frequency and label large; the summary repeats them only while collapsed. */
-.monitor[open] > .panel-summary .panel-summary-meta {
-  display: none;
-}
-/* Nothing to report while stopped, so the footer takes no room. */
-.source-foot:has(> #capture-info:empty):has(> #progress:empty) {
-  display: none;
-}
 #messages {
-  padding: 0 22px 20px;
+  padding: 0 16px 16px;
 }
+
 .empty {
   text-align: center;
   padding: 48px 12px;
@@ -1020,19 +847,153 @@ canvas {
   color: var(--muted);
   user-select: text;
 }
-footer {
+.status-bar {
   display: flex;
-  justify-content: space-between;
   flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 24px;
+  padding: 4px 16px;
+  min-height: 36px;
   color: var(--muted);
   font-size: 0.75rem;
-  padding-block-start: 24px;
-  gap: 12px;
+  font-variant-numeric: tabular-nums;
+  background: var(--surface);
+  border-block-start: 1px solid var(--line);
+}
+.totals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 20px;
+}
+.totals > div {
+  display: flex;
+  gap: 6px;
+}
+.totals dd {
+  color: var(--text);
+}
+#recording-summary,
+#recording-output {
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+.status-bar > span:empty {
+  display: none;
+}
+.status-end {
+  display: flex;
   align-items: center;
+  gap: 12px;
+  margin-inline-start: auto;
 }
-.version {
-  margin-inline-start: 6px;
+.status-end button {
+  min-height: 28px;
+  padding: 2px 10px;
+  font-size: 0.75rem;
 }
+/* Settings slide in from the inline end so the live panes stay in view behind them. */
+.drawer {
+  width: min(34rem, 100%);
+  max-width: none;
+  height: 100dvh;
+  max-height: none;
+  margin: 0 0 0 auto;
+  padding: 0;
+  color: var(--text);
+  background: var(--surface);
+  border: 0;
+  border-inline-start: 1px solid var(--control-border);
+  overscroll-behavior: contain;
+}
+.drawer[open] {
+  display: flex;
+  flex-direction: column;
+}
+.drawer::backdrop {
+  background: var(--bg);
+  opacity: 0.6;
+}
+body:has(.drawer[open]) {
+  overflow: hidden;
+}
+.drawer-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 24px;
+  border-block-end: 1px solid var(--line);
+}
+.drawer-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 8px 24px 32px;
+}
+.settings-section + .settings-section {
+  border-block-start: 1px solid var(--line);
+}
+.settings-section {
+  padding-block: 20px;
+}
+.settings-section h3 {
+  font-size: var(--text-heading);
+  margin-block-end: 16px;
+}
+.region {
+  margin-block-end: 4px;
+}
+.source-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  align-items: start;
+  margin-block-start: 8px;
+}
+.source-grid > * {
+  min-width: 0;
+}
+.span-all {
+  grid-column: 1 / -1;
+}
+.tcp-fields {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 16px;
+}
+.output-options {
+  display: grid;
+  gap: 0;
+  padding: 0;
+}
+.output-options legend {
+  font-size: var(--text-caption);
+  color: var(--muted);
+  padding: 0;
+}
+.recording-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 12px;
+  margin-block-start: 16px;
+}
+.recording-controls label {
+  flex: 1 1 16rem;
+  min-width: 0;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .drawer[open] {
+    animation: drawer-in 200ms cubic-bezier(0.2, 0, 0, 1);
+  }
+  @keyframes drawer-in {
+    from {
+      transform: translateX(24px);
+      opacity: 0;
+    }
+  }
+}
+
 #about-dialog {
   width: min(34rem, calc(100% - 32px));
   max-width: none;
@@ -1088,7 +1049,7 @@ body:has(#about-dialog[open]) {
   justify-content: end;
 }
 .error {
-  margin-block-start: 20px;
+  margin-block-start: 12px;
   padding: 16px 20px;
   background: var(--danger-bg);
   border: 1px solid var(--danger);
@@ -1158,47 +1119,64 @@ body:has(#about-dialog[open]) {
     transform: none;
   }
 }
-@media (max-width: 78rem) {
-  .source-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-  #tcp-group,
-  #device-group,
-  #file-group {
-    grid-column: span 2;
-  }
-}
-@media (max-width: 68rem) {
+/* Narrow or short windows fall back to one scrolling column. */
+@media (max-width: 64rem), (max-height: 40rem) {
   .workspace {
     grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
   }
-  .monitor-grid {
-    grid-template-columns: minmax(0, 1fr);
+  .channels,
+  .monitor,
+  .messages,
+  .operation-monitor {
+    grid-row: auto;
+    grid-column: auto;
   }
-  .monitor figure {
-    max-width: 190px;
-    justify-self: center;
+  .channels {
+    order: 1;
+  }
+  .channels .pane-body {
+    max-height: 60dvh;
+  }
+  .monitor {
+    order: 0;
+  }
+  .messages {
+    order: 2;
+  }
+  .operation-monitor {
+    order: 3;
+  }
+  .messages .pane-body,
+  .operation-monitor .pane-body {
+    max-height: 70dvh;
   }
 }
-@media (max-width: 54rem) {
-  .topbar {
-    align-items: start;
-    flex-direction: column;
-    padding: 20px;
+@media (min-width: 64.01rem) and (min-height: 40.01rem) {
+  .app {
+    height: 100dvh;
   }
-  .session-bar-inner {
-    padding-inline: 20px;
-    gap: 8px 20px;
+}
+@media (max-width: 48rem) {
+  .monitor {
+    grid-template-columns: minmax(0, 1fr) 8rem;
   }
-  /* The full label stays in the monitor panel; keep the bar to two rows. */
-  .session-channel-label {
-    display: none;
+  .frequency-heading,
+  .stats {
+    grid-column: 1 / -1;
   }
-  main {
-    padding-inline: 20px;
+  .monitor figure {
+    grid-row: 1;
+    grid-column: 2;
   }
-  .monitor-grid {
-    grid-template-columns: minmax(0, 1fr) minmax(140px, 0.7fr);
+  .frequency-heading {
+    grid-column: 1;
+  }
+  .frequency-readout {
+    font-size: 2rem;
+  }
+  .listening-control {
+    margin-inline-start: 0;
   }
   input,
   select {
@@ -1206,6 +1184,18 @@ body:has(#about-dialog[open]) {
   }
 }
 @media (max-width: 36rem) {
+  .session-bar,
+  .workspace {
+    padding-inline: 12px;
+  }
+  .monitor {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .monitor figure {
+    grid-row: auto;
+    grid-column: auto;
+    width: 10rem;
+  }
   .about-metadata {
     grid-template-columns: minmax(0, 1fr);
     gap: 6px;
@@ -1213,145 +1203,13 @@ body:has(#about-dialog[open]) {
   .about-metadata dd + dt {
     margin-block-start: 12px;
   }
-  .topbar {
-    padding: 16px;
-    gap: 16px;
-  }
-  .session-bar-inner {
-    padding-inline: 16px;
-  }
-  main {
-    padding-inline: 16px;
-  }
-  .tcp-fields {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  h1 {
-    font-size: 1.125rem;
-  }
-  .brand-icon {
-    width: 36px;
-    flex-basis: 36px;
-  }
+  .tcp-fields,
   .source-grid,
   .advanced-grid {
     grid-template-columns: minmax(0, 1fr);
   }
-  #tcp-group,
-  #device-group,
-  #file-group {
-    grid-column: auto;
-  }
-  .source-summary {
-    padding: 16px;
-  }
-  #source-summary {
-    display: block;
-    margin-block-start: 8px;
-  }
-  fieldset {
-    padding: 8px 16px 16px;
-  }
-  .source-foot,
-  .section-title,
-  .panel-summary {
-    padding: 16px;
-  }
-  .channel-toolbar {
-    flex-direction: column;
-    align-items: stretch;
-    padding-inline: 16px;
-    gap: 8px;
-  }
-  .search-label {
-    flex-basis: auto;
-  }
-  .recording-bar,
-  #recording-settings > summary,
-  .recording-controls,
-  .recording-info,
-  .output-options,
-  .monitor-selection,
-  #recording-error {
-    padding-inline: 16px;
-  }
-  table,
-  tbody {
-    display: block;
-  }
-  thead {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-  }
-  tbody tr {
-    display: grid;
-    grid-template-columns: 40px minmax(0, 1fr) minmax(0, 1fr);
-    gap: 4px 10px;
-    padding: 10px 16px;
-    border-block-start: 1px solid var(--line);
-  }
-  td {
-    display: block;
-    padding: 0;
-    border: 0;
-    min-width: 0;
-  }
-  th:first-child,
-  td:first-child {
-    padding: 0;
-    width: auto;
-  }
-  th:last-child,
-  td:last-child {
-    padding: 0;
-  }
-  td:nth-child(2) {
-    grid-column: 2 / 4;
-  }
-  td:nth-child(3) {
-    grid-column: 2;
-  }
-  td:nth-child(4) {
-    grid-column: 3;
-  }
-  td:nth-child(5) {
-    grid-column: 2;
-  }
-  td:nth-child(6) {
-    grid-column: 3;
-  }
-  td[data-label]::before {
-    content: attr(data-label) " ";
-    color: var(--muted);
-    font-size: 0.75rem;
-  }
-  .numeric {
-    text-align: start;
-  }
-  .frequency-heading {
-    padding: 16px 16px 8px;
-  }
-  .frequency-heading > p:first-child {
-    font-size: 2rem;
-  }
-  .monitor-grid {
-    padding-inline: 16px;
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .monitor figure {
-    width: 180px;
-  }
-  .audio-controls,
-  .message-toolbar {
-    padding-inline: 16px;
-  }
-  .decoder-options {
-    padding-inline: 16px;
-  }
-  #messages {
+  .drawer-head,
+  .drawer-body {
     padding-inline: 16px;
   }
   .message dl {
@@ -1365,6 +1223,59 @@ body:has(#about-dialog[open]) {
     padding-inline: 0;
   }
 }
+/* The detailed table folds into cards wherever its pane is narrow. */
+.channels {
+  container-type: inline-size;
+}
+@container (max-width: 30rem) {
+  #channels-table,
+  #channels-table tbody {
+    display: block;
+  }
+  #channels-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  #channels-table tbody tr {
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr) minmax(0, 1fr);
+    gap: 4px 10px;
+    padding: 10px 16px;
+    border-block-start: 1px solid var(--line);
+  }
+  #channels-table td,
+  #channels-table td:first-child,
+  #channels-table td:last-child {
+    display: block;
+    padding: 0;
+    border: 0;
+    width: auto;
+    min-width: 0;
+  }
+  #channels-table td:nth-child(2) {
+    grid-column: 2 / 4;
+  }
+  #channels-table td:nth-child(3),
+  #channels-table td:nth-child(5) {
+    grid-column: 2;
+  }
+  #channels-table td:nth-child(4),
+  #channels-table td:nth-child(6) {
+    grid-column: 3;
+  }
+  #channels-table td[data-label]::before {
+    content: attr(data-label) " ";
+    color: var(--muted);
+    font-size: 0.75rem;
+  }
+  #channels-table .numeric {
+    text-align: start;
+  }
+}
+
 @media (forced-colors: active) {
   :is(button, input, select, summary, a, [tabindex]):focus-visible {
     outline-color: Highlight;
@@ -1372,21 +1283,16 @@ body:has(#about-dialog[open]) {
   .channel-select[aria-pressed="true"] {
     border-color: Highlight;
   }
-  .channel-tile.selected,
-  .view-switch button[aria-pressed="true"] {
+    .view-switch button[aria-pressed="true"] {
     border-color: Highlight;
   }
   .badge {
     border: 1px solid CanvasText;
   }
 }
-
 /* Keep the dated summary independent of the selected audio-channel panel. */
 .operation-monitor {
   container-type: inline-size;
-}
-.operation-monitor .section-title {
-  flex-wrap: wrap;
 }
 .operation-monitor .badge {
   white-space: normal;
@@ -1395,7 +1301,7 @@ body:has(#about-dialog[open]) {
   display: flex;
   flex-wrap: wrap;
   gap: 12px 28px;
-  padding: 0 22px 16px;
+  padding: 0 16px 16px;
   font-variant-numeric: tabular-nums;
 }
 .operation-times dt {
@@ -1412,7 +1318,7 @@ body:has(#about-dialog[open]) {
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 6px 16px;
-  padding: 14px 22px;
+  padding: 14px 16px;
   color: var(--muted);
   font-size: var(--text-caption);
   overflow-wrap: anywhere;
@@ -1492,8 +1398,6 @@ body:has(#about-dialog[open]) {
 }
 
 /* A route choice is a draft until its frequency preview is applied. */
-.route-feedback:empty { display: none; }
-.route-feedback { margin-block: 0 16px; color: var(--muted); overflow-wrap: anywhere; }
 #route-dialog {
   width: min(62rem, calc(100% - 32px));
   max-width: none;

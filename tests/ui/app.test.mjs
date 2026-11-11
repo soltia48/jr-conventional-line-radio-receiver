@@ -762,7 +762,7 @@ test("missing saved catalogs block reception and can recover without losing save
   assert.equal(ui.$("region").disabled, true);
   assert.equal(ui.$("channels-simple").children.length, 0);
   assert.equal(ui.$("preset-error").hidden, false);
-  assert.equal(ui.$("source-panel").open, true);
+  assert.equal(ui.$("settings-dialog").open, true);
   assert.equal(ui.$("preset-settings").open, true);
   assert.equal(ui.$("preset-path").textContent, path);
   await ui.click("start");
@@ -825,10 +825,6 @@ test("loading locks receiving controls and a removed saved profile selects and p
 });
 test("automatic selection plays the returned channel while a manual choice pins both views", async (t) => {
   const ui = await setup(t);
-  // Live panels start open; a listener who collapses them keeps that choice.
-  assert.equal(ui.$("channels-panel").open, true);
-  assert.equal(ui.$("monitor-panel").open, true);
-  ui.$("channels-panel").open = ui.$("monitor-panel").open = false;
   assert.equal(ui.$("auto-select").checked, true);
   ui.$("listen").checked = true;
   await ui.click("start");
@@ -848,9 +844,7 @@ test("automatic selection plays the returned channel while a manual choice pins 
   });
   await ui.poll();
   assert.equal(ui.$("selected-frequency").textContent, "352.54375");
-  assert.match(ui.$("monitor-summary").textContent, /352\.54375 MHz/);
-  assert.equal(ui.$("message-channel").textContent, ui.$("monitor-summary").textContent);
-  assert.equal(ui.$("monitor-panel").open, false);
+  assert.match(ui.$("message-channel").textContent, /352\.54375 MHz/);
   assert.deepEqual(ui.playback, [8000 / 32768]);
   assert.equal(
     ui.$("channels-simple").children[1].querySelector(".compact-state")
@@ -1000,10 +994,10 @@ test("JSONL outputs can be selected without audio and empty output choices are r
   const ui = await setup(t);
   await ui.click("start");
   await ui.poll();
-  ui.$("recording-settings").open = true;
   await ui.click("output-audio");
   await ui.click("record-start");
-  assert.match(ui.$("recording-error").textContent, /1 つ以上/);
+  assert.match(ui.$("recording-field-error").textContent, /1 つ以上/);
+  assert.equal(ui.$("settings-dialog").open, true);
   assert.equal(
     ui.calls.some((c) => c.command === "start_recording"),
     false,
@@ -1019,7 +1013,7 @@ test("JSONL outputs can be selected without audio and empty output choices are r
     data_messages: true,
   });
   assert.equal(ui.$("output-data").matches(":disabled"), true);
-  ui.$("recording-settings").open = false;
+  assert.equal(ui.$("recording-field-error").hidden, true);
   assert.equal(ui.$("record-stop").disabled, false);
   ui.setRecording({
     state: "recording",
@@ -1181,34 +1175,35 @@ test("simple and detailed views share selection, receive targets, filtering and 
   assert.equal(ui.$("channels").children.length, 3);
   assert.equal(ui.$("channels-table").hidden, false);
 });
-test("recording settings collapse without hiding start, stop or errors", async (t) => {
+test("settings live in a drawer that never hides start, stop or errors", async (t) => {
   const ui = await setup(t);
-  const settings = ui.$("recording-settings");
-  assert.equal(settings.open, false);
-  assert.equal(settings.contains(ui.$("record-start")), false);
-  assert.equal(settings.contains(ui.$("record-stop")), false);
-  assert.equal(settings.contains(ui.$("recording-error")), false);
-  settings.querySelector("summary").click();
-  assert.equal(settings.open, true);
-  settings.querySelector("summary").click();
-  assert.equal(settings.open, false);
+  const drawer = ui.$("settings-dialog");
+  assert.equal(drawer.open, false);
+  for (const id of ["start", "stop", "record-start", "record-stop", "recording-error", "error"])
+    assert.equal(drawer.contains(ui.$(id)), false, id);
+  for (const id of ["region", "host", "record-directory", "output-audio"])
+    assert.equal(drawer.contains(ui.$(id)), true, id);
+  await ui.click("settings-open");
+  assert.equal(drawer.open, true);
+  await ui.click("settings-close");
+  assert.equal(drawer.open, false);
+  assert.equal(ui.w.document.activeElement.id, "settings-open");
   await ui.click("start");
   await ui.poll();
   await ui.click("record-start");
   await ui.poll();
-  assert.equal(settings.open, false);
+  assert.equal(drawer.open, false);
   assert.equal(ui.$("recording-state").textContent, "保存中");
   assert.equal(ui.$("record-stop").disabled, false);
   await ui.click("record-stop");
-  assert.equal(settings.open, false);
+  assert.equal(drawer.open, false);
   assert.equal(ui.$("recording-state").textContent, "保存完了");
-  settings.open = true;
   ui.input("record-directory", "");
-  settings.open = false;
   await ui.click("record-start");
-  assert.equal(settings.open, true);
+  assert.equal(drawer.open, true);
   assert.equal(ui.w.document.activeElement.id, "record-directory");
-  assert.equal(ui.$("recording-error").hidden, false);
+  assert.equal(ui.$("record-directory").getAttribute("aria-describedby"), "recording-field-error");
+  assert.equal(ui.$("recording-field-error").hidden, false);
 });
 test("recording starts with the OS default folder without a picker and preserves a custom choice", async (t) => {
   const ui = await setup(t);
@@ -1380,10 +1375,10 @@ test("writer failure is shown separately and does not interrupt reception", asyn
   assert.equal(ui.$("state").textContent, "受信中");
   assert.equal(ui.$("total-data").textContent, "418");
   assert.equal(ui.$("error").hidden, true);
-  assert.equal(ui.$("recording-settings").open, true);
-  ui.$("recording-settings").open = false;
+  // A failing writer must not pull a modal over live reception.
+  assert.equal(ui.$("settings-dialog").open, false);
+  assert.equal(ui.$("settings-dialog").contains(ui.$("recording-error")), false);
   await ui.poll();
-  assert.equal(ui.$("recording-settings").open, false);
   assert.equal(ui.$("recording-error").hidden, false);
 });
 test("cancelled directory picker and rejected recording start never report recording", async (t) => {
@@ -1540,10 +1535,14 @@ test("invalid fields expose an error and regain focus without starting", async (
   assert.equal(ui.$("port").getAttribute("aria-invalid"), "true");
   assert.equal(ui.w.document.activeElement.id, "port");
   assert.equal(ui.$("field-error").hidden, false);
+  assert.equal(ui.$("settings-dialog").open, true);
+  assert.equal(ui.$("settings-dialog").contains(ui.$("field-error")), true);
+  ui.$("settings-dialog").close();
   ui.input("port", "1234");
   await ui.click("all");
   await ui.click("start");
-  assert.equal(ui.$("channels-panel").open, true);
+  // The receive-all toggle sits in the channel pane, so the drawer stays shut.
+  assert.equal(ui.$("settings-dialog").open, false);
   assert.equal(ui.w.document.activeElement.id, "all");
   assert.equal(ui.$("all").getAttribute("aria-invalid"), "true");
   await ui.click("all");
@@ -1635,13 +1634,7 @@ test("operation monitor updates independently of manual audio selection and log 
   assert.equal(app.$("operation-state").textContent, "受信済み");
   // Reveal the controls without disturbing the paused log or audio selection.
   app.$("message-channel").click();
-  assert.equal(app.$("channels-panel").open, true);
   assert.equal(app.w.document.activeElement, app.$("channels-title"));
-  assert.equal(app.$("monitor-panel").open, true);
-  await app.click("channels-title");
-  await app.click("monitor-title");
-  assert.equal(app.$("channels-panel").open, false);
-  assert.equal(app.$("monitor-panel").open, false);
   assert.equal(app.$("auto-select").checked, false);
   assert.equal(app.$("selected-frequency").textContent, selected);
   assert.equal(app.$("pause-messages").getAttribute("aria-pressed"), "true");
@@ -1745,40 +1738,32 @@ test("an invalid rate keeps its hint while pointing at the error", async (t) => 
   await ui.click("start");
   assert.equal(ui.$("rate").getAttribute("aria-describedby"), "rate-hint");
 });
-test("session bar mirrors the selected channel, its sync state and locked count", async (t) => {
+test("session bar keeps the locked count and saving state beside the controls", async (t) => {
   const ui = await setup(t);
-  const first = presets[0];
-  assert.equal(
-    ui.$("bar-frequency").textContent,
-    (first.frequency_hz / 1e6).toFixed(5),
-  );
-  assert.equal(ui.$("bar-channel-label").textContent, first.label);
   assert.equal(ui.$("bar-enabled").textContent, String(presets.length));
   assert.equal(ui.$("bar-locked").textContent, "—");
   await ui.click("start");
   await ui.poll();
   assert.equal(ui.$("bar-locked").textContent, "3");
-  assert.equal(ui.$("bar-sync").textContent, "同期中");
-  assert.equal(ui.$("bar-sync").className, "locked");
+  // The always-visible monitor carries the selected channel; the bar does not repeat it.
+  assert.equal(ui.$("session-bar").contains(ui.$("selected-frequency")), false);
   ui.$("channels-simple").children[5].querySelector(".channel-select").click();
   assert.equal(
-    ui.$("bar-frequency").textContent,
+    ui.$("selected-frequency").textContent,
     (presets[5].frequency_hz / 1e6).toFixed(5),
   );
   await ui.poll();
-  assert.equal(ui.$("bar-sync").textContent, "探索中");
-  ui.$("bar-channel").click();
-  assert.equal(ui.$("monitor-panel").open, true);
-  assert.equal(ui.$("bar-recording").textContent, "未保存");
+  assert.equal(ui.$("sync").textContent, "探索中");
+  assert.equal(ui.$("recording-state").textContent, "未保存");
+  assert.equal(ui.$("session-bar").contains(ui.$("recording-state")), true);
   await ui.click("record-start");
   ui.setRecording({ state: "recording", files: 0, pcm_samples: 0, error: null });
   await ui.poll();
-  assert.equal(ui.$("bar-recording").textContent, "保存中");
-  assert.equal(ui.$("bar-recording").getAttribute("href"), "#recording-title");
+  assert.equal(ui.$("recording-state").textContent, "保存中");
 });
 test("live monitoring precedes secondary sections in document order", async (t) => {
   const ui = await setup(t);
-  const order = ["session-bar", "source-panel", "channels-panel", "monitor-panel", "operation-title", "messages-title", "recording-title"];
+  const order = ["session-bar", "channels-panel", "monitor-panel", "messages-title", "operation-title", "settings-dialog"];
   const nodes = order.map((id) => ui.$(id));
   for (let i = 1; i < nodes.length; i++)
     assert.equal(
@@ -1786,7 +1771,7 @@ test("live monitoring precedes secondary sections in document order", async (t) 
       ui.w.Node.DOCUMENT_POSITION_FOLLOWING,
       `${order[i - 1]} should precede ${order[i]}`,
     );
-  assert.equal(ui.$("source-panel").contains(ui.$("region")), true);
+  assert.equal(ui.$("settings-dialog").contains(ui.$("region")), true);
   // Listening mode controls stay reachable; manual pinning is explained in the monitor.
   for (const id of ["listen", "auto-select"])
     assert.equal(ui.$("session-bar").contains(ui.$(id)), true);

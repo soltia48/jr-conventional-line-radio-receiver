@@ -19,7 +19,7 @@ Extract the archive and run `jr-receiver-desktop` for the GUI or `jr-receiver` f
 Each archive includes `radio-presets.json`, its JSON Schema, runtime instructions, voice-coefficient provenance metadata, and build information.
 The archive's `README.md` is the English release guide and `README.ja.md` is its Japanese version. Links at the top switch between them.
 The bundled preset JSON is a template for editing external presets; it is not loaded automatically at startup.
-Select it explicitly through “受信設定” (Receive settings) → “プリセットファイル” (Preset file) in the app.
+Select it explicitly through the settings panel → “プリセットファイル” (Preset file) in the app.
 
 The workflow does not generate installers, AppImage, DMG, or `.app` bundles. It does not perform Windows signing, Apple Developer ID signing, or notarization.
 macOS executables receive an ad-hoc signature after library paths are adjusted; this does not establish the publisher's identity.

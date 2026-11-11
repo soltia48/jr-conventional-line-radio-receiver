@@ -147,16 +147,27 @@ $("about-open").addEventListener("click", () => {
 });
 $("about-close").addEventListener("click", () => $("about-dialog").close());
 $("about-dialog").addEventListener("close", () => $("about-open").focus());
-// Navigation into a disclosure must reveal its content before moving focus.
+// Settings live in a drawer; anything that needs a field fixed opens it first.
+function openSettings(field) {
+  const dialog = $("settings-dialog");
+  if (!dialog.open) dialog.showModal();
+  field?.focus();
+}
+function closeSettings() {
+  if ($("settings-dialog").open) $("settings-dialog").close();
+}
+$("settings-open").addEventListener("click", () => openSettings());
+$("settings-close").addEventListener("click", closeSettings);
+$("settings-dialog").addEventListener("close", () => $("settings-open").focus());
+// Panes scroll on their own, so in-page links move focus to the pane heading.
 document.addEventListener("click", (event) => {
   const link = event.target.closest?.('a[href^="#"]');
   if (!link || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey)
     return;
   const target = document.getElementById(link.hash.slice(1));
   if (!target) return;
-  const panel = target.closest(".panel-disclosure");
-  if (panel) panel.open = true;
-  target.focus({ preventScroll: true });
+  event.preventDefault();
+  target.focus();
 });
 // Visible error boxes are toggled with `hidden`; the announcer stays in the
 // accessibility tree so a newly shown error is always read out.
@@ -402,7 +413,7 @@ function renderRecording() {
       failed: "保存エラー",
     }[s.state] ?? s.state;
   if ($("recording-state").textContent !== label)
-    $("recording-state").textContent = $("bar-recording").textContent = label;
+    $("recording-state").textContent = label;
   $("recording-state").classList.toggle("active", active);
   // Only explain what the disabled buttons cannot: why and when saving starts.
   const summary =
@@ -427,7 +438,6 @@ function renderRecording() {
   if ($("recording-error").textContent !== message) {
     $("recording-error").textContent = message;
     announce(message);
-    if (error) $("recording-settings").open = true;
   }
   $("recording-error").hidden = !error;
 }
@@ -435,6 +445,7 @@ function clearRecordingError() {
   recordingActionError = "";
   $("record-directory").removeAttribute("aria-invalid");
   $("record-directory").removeAttribute("aria-describedby");
+  $("recording-field-error").hidden = true;
 }
 $("record-directory").addEventListener("input", () => {
   clearRecordingError();
@@ -464,19 +475,20 @@ async function startRecording(automatic = false) {
   clearRecordingError();
   const directory = $("record-directory").value.trim();
   if (!directory) {
-    $("recording-settings").open = true;
-    recordingActionError = "保存先フォルダーを選択してください。";
+    $("recording-field-error").textContent = "保存先フォルダーを選択してください。";
+    $("recording-field-error").hidden = false;
     $("record-directory").setAttribute("aria-invalid", "true");
-    $("record-directory").setAttribute("aria-describedby", "recording-error");
+    $("record-directory").setAttribute("aria-describedby", "recording-field-error");
     renderRecording();
-    $("record-directory").focus();
+    openSettings($("record-directory"));
     return;
   }
   const options = outputOptions();
   if (!Object.values(options).some(Boolean)) {
-    recordingActionError = "保存する内容を 1 つ以上選択してください。";
+    $("recording-field-error").textContent = "保存する内容を 1 つ以上選択してください。";
+    $("recording-field-error").hidden = false;
     renderRecording();
-    $("output-audio").focus();
+    openSettings($("output-audio"));
     return;
   }
   try {
@@ -673,6 +685,8 @@ function renderChannelStates() {
   }
 }
 function setChannelView(simple) {
+  // The detailed table needs room, so the channel pane widens with it.
+  $("workspace").classList.toggle("detailed", !simple);
   $("channels-simple").hidden = !simple;
   $("channels-table").hidden = simple;
   $("view-simple").setAttribute("aria-pressed", String(simple));
@@ -712,9 +726,6 @@ function select(id, manual = false) {
   const summary = c
     ? `${(c.frequency_hz / 1e6).toFixed(5)} MHz · ${c.label}`
     : "プリセットを読み込んでください";
-  $("monitor-summary").textContent = summary;
-  $("bar-frequency").textContent = c ? (c.frequency_hz / 1e6).toFixed(5) : "—";
-  $("bar-channel-label").textContent = c?.label ?? "";
   $("message-channel").textContent = summary;
   detail(null);
   if (lastSnapshot) {
@@ -850,8 +861,6 @@ function detail(s) {
         ? "探索中"
         : "待機";
   $("sync").classList.toggle("locked", !!s?.frame_locked && running);
-  $("bar-sync").textContent = $("sync").textContent;
-  $("bar-sync").className = s?.frame_locked && running ? "locked" : "lost";
   $("level").textContent = s?.iq_samples
     ? `${s.input_dbfs.toFixed(1)} dBFS`
     : "—";
@@ -970,8 +979,8 @@ function showPresetError(error) {
     `プリセットを読み込めませんでした。${error.message ?? error} ${channels.length ? "現在のプリセットを引き続き使用します。" : "読み込むまで受信を開始できません。"} ファイルを確認して選び直してください。${presetFile ? "再読み込み、組み込みへの切替もできます。" : ""}`;
   $("preset-error").hidden = false;
   announce($("preset-error").textContent);
-  $("source-panel").open = true;
   $("preset-settings").open = true;
+  openSettings();
 }
 function installCatalog(catalog, preferred) {
   const retained = catalog.some((p) => p.id === preferred);
@@ -1132,8 +1141,9 @@ function updateSource() {
       ? "IQ WAV ファイル"
       : "SoapySDR デバイス";
   const preset = presetCatalog.find((p) => p.id === activePresetId)?.label;
-  // The collapsed settings panel still names what will be received.
+  // The settings button names what will be received and flags a missing server.
   $("source-summary").textContent = preset ? `${preset} · ${source}` : source;
+  $("settings-open").classList.toggle("attention", tcp && !(host && port));
   $("source-hint").textContent = wave ? "I は左、Q は右チャンネル" : "";
   $("source-hint").hidden = !wave;
 }
@@ -1208,15 +1218,13 @@ $("start").addEventListener("click", async () => {
     updatePause();
     $("messages").replaceChildren();
     $("state").textContent = "接続中";
-    $("source-panel").open = false;
+    closeSettings();
   } catch (e) {
     fail(e);
     if (e.field) {
       invalidField = $(e.field);
-      $("source-panel").open = true;
-      const panel = invalidField.closest(".panel-disclosure");
-      if (panel) panel.open = true;
       if (e.field === "args") $("soapy-options").open = true;
+      if ($("settings-dialog").contains(invalidField)) openSettings();
       invalidField.setAttribute("aria-invalid", "true");
       invalidField.setAttribute(
         "aria-describedby",

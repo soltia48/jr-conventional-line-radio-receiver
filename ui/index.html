@@ -16,20 +16,10 @@
   </head>
   <body>
     <a class="skip-link" href="#operation-title">運行把握モニタへ移動</a>
-    <header class="topbar">
-      <div class="brand">
-        <img
-          class="brand-icon"
-          src="assets/app-icon.png"
-          width="40"
-          height="40"
-          alt=""
-        />
-        <h1>JR 在来線デジタル列車無線受信アプリ</h1>
-      </div>
-    </header>
-    <div id="session-bar" class="session-bar" role="region" aria-label="受信の操作と状態">
-      <div class="session-bar-inner">
+    <div class="app">
+      <div id="session-bar" class="session-bar" role="region" aria-label="受信の操作と状態">
+        <img class="brand-icon" src="assets/app-icon.png" width="28" height="28" alt="" />
+        <h1 class="sr-only">JR 在来線デジタル列車無線受信アプリ</h1>
         <div class="session">
           <span id="state" class="badge" role="status">停止中</span
           ><button id="start" class="primary" disabled>
@@ -38,293 +28,92 @@
             <span aria-hidden="true">■</span> 停止
           </button>
         </div>
-        <dl class="session-facts">
-          <div>
-            <dt>選択波</dt>
-            <dd>
-              <a id="bar-channel" href="#monitor-title"
-                ><bdi id="bar-frequency">—</bdi> <span class="unit">MHz</span>
-                <span id="bar-channel-label" class="session-channel-label"></span
-              ></a>
-              <span id="bar-sync" class="lost">待機</span>
-            </dd>
-          </div>
-          <div>
-            <dt>同期</dt>
-            <dd><span id="bar-locked">—</span> / <span id="bar-enabled">22</span> 波</dd>
-          </div>
-          <div>
-            <dt>保存</dt>
-            <dd><a id="bar-recording" href="#recording-title">未保存</a></dd>
-          </div>
-        </dl>
+        <p class="sync-count">
+          同期 <strong><span id="bar-locked">—</span> / <span id="bar-enabled">22</span></strong> 波
+        </p>
         <div class="listening-control" role="group" aria-label="音声">
           <label class="check-label listen" for="listen"
             ><input id="listen" type="checkbox" checked />音声を聴く</label
           ><label class="check-label" for="auto-select"
-            ><input
-              id="auto-select"
-              type="checkbox"
-              checked
-            />通話を自動選択</label
+            ><input id="auto-select" type="checkbox" checked />通話を自動選択</label
           >
           <span id="audio-state" class="muted">音声待機</span>
         </div>
-      </div>
-    </div>
-    <main>
-      <p id="alert-announcer" class="sr-only" role="alert"></p>
-      <div id="error" class="error" hidden></div>
-      <div id="preferences-error" class="error" hidden>
-        <p id="preferences-message"></p>
-        <button id="preferences-retry" type="button">保存を再試行</button>
-      </div>
-      <section class="overview" aria-label="受信全体の状態">
-        <dl class="totals">
-          <div class="band">
-            <dt>受信帯域</dt>
-            <dd>
-              <span class="band-range"
-                ><bdi id="band-low">352.53750</bdi><span class="sr-only">–</span
-                ><ol id="band-map" class="band-map" aria-hidden="true"></ol
-                ><bdi id="band-high">352.66875</bdi> <small>MHz</small></span
-              >
-            </dd>
-          </div>
-          <div>
-            <dt>有効データ</dt>
-            <dd id="total-data">—</dd>
-          </div>
-          <div>
-            <dt>音声フレーム</dt>
-            <dd id="total-voice">—</dd>
-          </div>
-          <div>
-            <dt>処理欠落</dt>
-            <dd id="total-drops">—</dd>
-          </div>
-        </dl>
-      </section>
-      <details id="source-panel" class="card source" open>
-        <summary class="source-summary">
-          <span class="source-heading">受信設定</span
-          ><span id="source-summary">RTL-TCP · 接続先未設定</span>
-        </summary>
-        <fieldset id="settings">
-          <legend class="sr-only">受信設定</legend>
-          <div class="preset-row">
-            <label class="region" for="region"
-              >受信プリセット<select id="region" disabled>
-                <option value="east">受信設定を読み込み中</option>
-              </select></label
-            >
-            <details id="preset-settings" class="preset-settings">
-              <summary>
-                プリセットファイル · <span id="preset-source">組み込み</span>
-              </summary>
-              <p id="preset-path" dir="auto" hidden></p>
-              <div class="preset-actions">
-                <button id="preset-browse" type="button">
-                  JSON ファイルを選択
-                </button>
-                <button id="preset-reload" type="button" disabled>
-                  再読み込み
-                </button>
-                <button id="preset-builtin" type="button" disabled>
-                  組み込みに戻す
-                </button>
-              </div>
-            </details>
-          </div>
-          <p id="preset-status" class="preset-feedback" role="status"></p>
-          <p
-            id="preset-error"
-            class="preset-feedback field-error"
-            hidden
-          ></p>
-          <div class="source-grid">
-            <label for="input-kind"
-              >入力方式<select id="input-kind">
-                <option value="rtl_tcp" selected>RTL-TCP サーバー</option>
-                <option value="sdr">SoapySDR デバイス</option>
-                <option value="wave">IQ WAV ファイル</option>
-              </select></label
-            >
-            <div id="tcp-group" class="tcp-fields">
-              <label for="host"
-                >IP アドレス<input
-                  id="host"
-                  placeholder="IPv4 / IPv6 アドレス"
-                  autocomplete="off"
-                  spellcheck="false" /></label
-              ><label for="port"
-                >ポート<input
-                  id="port"
-                  type="number"
-                  placeholder="1–65535"
-                  min="1"
-                  max="65535"
-                  step="1"
-                  inputmode="numeric"
-              /></label>
-            </div>
-            <div id="device-group" hidden>
-              <label for="device"
-                >デバイス<select id="device">
-                  <option value="">デバイスを検索してください</option>
-                </select></label
-              ><button id="scan" type="button">検索</button>
-            </div>
-            <div id="file-group" hidden>
-              <label for="path">IQ WAV ファイル</label>
-              <div class="file-row">
-                <input
-                  id="path"
-                  placeholder="ステレオ float32 / PCM16"
-                  autocomplete="off"
-                /><button id="browse" type="button">選択</button>
-              </div>
-            </div>
-            <label for="center"
-              >中心周波数 <span class="unit">MHz</span
-              ><input
-                id="center"
-                type="number"
-                value="352.603125"
-                step="0.000001"
-                min="0.000001"
-                inputmode="decimal"
-                required
-            /></label>
-            <label for="rate"
-              >サンプルレート <span class="unit">S/s</span
-              ><input
-                id="rate"
-                type="number"
-                value="240000"
-                min="9600"
-                max="20000000"
-                step="1"
-                inputmode="numeric"
-                required
-                aria-describedby="rate-hint"
-                data-hint="rate-hint"
-            /></label>
-            <label for="gain"
-              >ゲイン <span class="unit">dB</span
-              ><input
-                id="gain"
-                type="number"
-                placeholder="自動"
-                step="0.1"
-                inputmode="decimal"
-            /></label>
-          </div>
-          <div
-            id="rate-presets"
-            class="rate-presets"
-            role="group"
-            aria-labelledby="rate-presets-label"
-          >
-            <span id="rate-presets-label" class="sr-only"
-              >サンプルレートの候補</span
-            >
-          </div>
-          <p id="rate-hint" class="field-hint" hidden></p>
-          <p id="source-hint" class="field-hint" hidden></p>
-          <p id="field-error" class="field-error" hidden></p>
-          <details id="soapy-options" class="advanced" hidden>
-            <summary>SoapySDR の詳細設定</summary>
-            <div class="advanced-grid">
-              <label for="args"
-                >デバイス引数<input
-                  id="args"
-                  placeholder="driver=rtlsdr,serial=…"
-                  autocomplete="off"
-                  spellcheck="false" /></label
-              ><label for="rx-channel"
-                >RX 番号<input
-                  id="rx-channel"
-                  type="number"
-                  value="0"
-                  min="0"
-                  step="1" /></label
-              ><label for="antenna"
-                >アンテナ<input id="antenna" placeholder="機器の既定値"
-              /></label>
-            </div>
-          </details>
-          <label id="ppm-group" class="ppm-field" for="ppm"
-            >周波数補正 <span class="unit">ppm</span
-            ><input
-              id="ppm"
-              type="number"
-              value="0"
-              min="-1000"
-              max="1000"
-              step="1"
-              inputmode="numeric"
-          /></label>
-        </fieldset>
-        <div class="source-foot">
-          <span id="capture-info"></span><span id="progress"></span>
+        <div class="recording-control" role="group" aria-label="録音・データ保存">
+          <span id="recording-state" class="badge" role="status">未保存</span
+          ><button id="record-start" type="button" disabled>保存を開始</button
+          ><button id="record-stop" type="button" disabled>保存を停止</button>
         </div>
-      </details>
-      <div class="workspace-navigation">
-        <nav aria-label="受信情報への移動">
-          <button id="route-open" type="button" disabled aria-haspopup="dialog">路線から選ぶ</button>
-          <a href="#operation-title">運行把握モニタ</a>
-          <a href="#messages-title">受信データ</a>
-          <a href="#recording-title">録音・データ保存</a>
-        </nav>
+        <button
+          id="settings-open"
+          class="settings-open"
+          type="button"
+          aria-haspopup="dialog"
+          aria-controls="settings-dialog"
+        >
+          <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>
+          <span class="sr-only">設定：</span><span id="source-summary">RTL-TCP · 接続先未設定</span>
+        </button>
       </div>
-      <p id="route-feedback" class="route-feedback" role="status"></p>
-      <div class="workspace">
-        <div class="workspace-tools">
-          <details id="channels-panel" class="card channels panel-disclosure" open>
-            <summary id="channels-title" class="panel-summary">
-              <h2>チャンネル一覧</h2>
-              <span id="channel-count" class="panel-summary-meta">受信対象 22 波 · 待機</span>
-            </summary>
-            <div class="channel-toolbar">
-              <label for="channel-search" class="search-label"
-                ><span class="sr-only">周波数・割当を検索</span
-                ><input
-                  id="channel-search"
-                  type="search"
-                  placeholder="周波数・割当を検索"
-                  autocomplete="off" /></label
-              ><label class="check-label" for="all"
-                ><input id="all" type="checkbox" checked /><span id="all-label"
-                  >全 22 波を受信</span
-                ></label
+      <div class="alerts">
+        <p id="alert-announcer" class="sr-only" role="alert"></p>
+        <div id="error" class="error" hidden></div>
+        <div id="preferences-error" class="error" hidden>
+          <p id="preferences-message"></p>
+          <button id="preferences-retry" type="button">保存を再試行</button>
+        </div>
+        <p id="recording-error" class="error" hidden></p>
+      </div>
+      <main id="workspace" class="workspace">
+        <section id="channels-panel" class="pane channels" aria-labelledby="channels-title">
+          <div class="pane-head">
+            <h2 id="channels-title" tabindex="-1">チャンネル</h2>
+            <span id="channel-count" class="pane-meta">受信対象 22 / 22 波</span>
+          </div>
+          <div class="band-range">
+            <span class="sr-only">受信帯域</span><bdi id="band-low">352.53750</bdi
+            ><span class="sr-only">–</span
+            ><ol id="band-map" class="band-map" aria-hidden="true"></ol
+            ><bdi id="band-high">352.66875</bdi>
+          </div>
+          <div class="channel-toolbar">
+            <button id="route-open" type="button" disabled aria-haspopup="dialog">路線から選ぶ</button>
+            <label for="channel-search" class="search-label"
+              ><span class="sr-only">周波数・割当を検索</span
+              ><input
+                id="channel-search"
+                type="search"
+                placeholder="周波数・割当を検索"
+                autocomplete="off" /></label
+            ><label class="check-label" for="all"
+              ><input id="all" type="checkbox" checked /><span id="all-label"
+                >全 22 波を受信</span
+              ></label
+            >
+            <div class="view-switch" role="group" aria-label="チャンネル一覧の表示">
+              <button
+                id="view-simple"
+                type="button"
+                aria-pressed="true"
+                aria-controls="channels-simple channels-table"
               >
-              <div
-                class="view-switch"
-                role="group"
-                aria-label="チャンネル一覧の表示"
+                簡易
+              </button>
+              <button
+                id="view-detailed"
+                type="button"
+                aria-pressed="false"
+                aria-controls="channels-simple channels-table"
               >
-                <button
-                  id="view-simple"
-                  type="button"
-                  aria-pressed="true"
-                  aria-controls="channels-simple channels-table"
-                >
-                  簡易
-                </button>
-                <button
-                  id="view-detailed"
-                  type="button"
-                  aria-pressed="false"
-                  aria-controls="channels-simple channels-table"
-                >
-                  詳細
-                </button>
-              </div>
+                詳細
+              </button>
             </div>
+          </div>
+          <p id="route-feedback" class="route-feedback" role="status"></p>
+          <div class="pane-body">
             <ul
               id="channels-simple"
-              class="channel-grid"
+              class="channel-list"
               role="list"
               aria-label="チャンネルの簡易一覧"
             ></ul>
@@ -346,81 +135,72 @@
               <p>周波数の一部や D1 などの割当で検索できます。</p>
               <button id="clear-search">検索を解除</button>
             </div>
-            <p id="search-status" class="sr-only" role="status"></p>
-          </details>
-          <details id="monitor-panel" class="card monitor panel-disclosure" open>
-            <summary id="monitor-title" class="panel-summary">
-              <h2>選択波モニタ</h2>
-              <span id="monitor-summary" class="panel-summary-meta">選択波を読み込み中</span>
-            </summary>
-            <div class="frequency-heading">
-              <p>
-                <span id="selected-frequency">352.53750</span>
-                <span class="unit">MHz</span>
-              </p>
-              <p id="selected-label">D5 音声第1波</p>
-            </div>
+          </div>
+          <p id="search-status" class="sr-only" role="status"></p>
+        </section>
+        <section id="monitor-panel" class="pane monitor" aria-labelledby="monitor-title">
+          <h2 id="monitor-title" class="sr-only" tabindex="-1">選択波モニタ</h2>
+          <div class="frequency-heading">
+            <p class="frequency-readout">
+              <span id="selected-frequency">352.53750</span>
+              <span class="unit">MHz</span>
+            </p>
+            <p id="selected-label">D5 音声第1波</p>
             <p id="selection-hint" class="monitor-selection" role="status"></p>
-            <div class="monitor-grid">
-              <dl class="stats">
-                <div>
-                  <dt>フレーム同期</dt>
-                  <dd id="sync">待機</dd>
-                </div>
-                <div>
-                  <dt>広帯域入力</dt>
-                  <dd id="level">—</dd>
-                </div>
-                <div>
-                  <dt>
-                    変調誤差 <abbr title="Error vector magnitude">EVM</abbr>
-                  </dt>
-                  <dd id="evm">—</dd>
-                </div>
-                <div>
-                  <dt>残留周波数</dt>
-                  <dd id="offset">—</dd>
-                </div>
-                <div>
-                  <dt>受信フレーム</dt>
-                  <dd id="frames">—</dd>
-                </div>
-                <div>
-                  <dt>音声受理</dt>
-                  <dd id="voice-count">—</dd>
-                </div>
-                <div>
-                  <dt>欠落 / 再同期</dt>
-                  <dd id="drops">—</dd>
-                </div>
-                <div>
-                  <dt>モニター音声欠落</dt>
-                  <dd id="audio-drops">—</dd>
-                </div>
-              </dl>
-              <figure>
-                <canvas
-                  id="constellation"
-                  width="230"
-                  height="230"
-                  role="img"
-                  aria-label="差動シンボル分布"
-                ></canvas>
-              </figure>
+          </div>
+          <dl class="stats">
+            <div>
+              <dt>フレーム同期</dt>
+              <dd id="sync">待機</dd>
             </div>
-            <div class="audio-controls">
-              <label class="volume" for="volume"
-                >音量<input
-                  id="volume"
-                  type="range"
-                  min="0"
-                  max="100"
-                  value="70"
-                /><output id="volume-value" for="volume">70%</output></label
-              >
+            <div>
+              <dt>広帯域入力</dt>
+              <dd id="level">—</dd>
             </div>
+            <div>
+              <dt>変調誤差 <abbr title="Error vector magnitude">EVM</abbr></dt>
+              <dd id="evm">—</dd>
+            </div>
+            <div>
+              <dt>残留周波数</dt>
+              <dd id="offset">—</dd>
+            </div>
+            <div>
+              <dt>受信フレーム</dt>
+              <dd id="frames">—</dd>
+            </div>
+            <div>
+              <dt>音声受理</dt>
+              <dd id="voice-count">—</dd>
+            </div>
+            <div>
+              <dt>欠落 / 再同期</dt>
+              <dd id="drops">—</dd>
+            </div>
+            <div>
+              <dt>モニター音声欠落</dt>
+              <dd id="audio-drops">—</dd>
+            </div>
+          </dl>
+          <figure>
+            <canvas
+              id="constellation"
+              width="230"
+              height="230"
+              role="img"
+              aria-label="差動シンボル分布"
+            ></canvas>
+          </figure>
+          <div class="audio-controls">
+            <label class="volume" for="volume"
+              >音量<input id="volume" type="range" min="0" max="100" value="70" /><output
+                id="volume-value"
+                for="volume"
+                >70%</output
+              ></label
+            >
             <details class="decoder-options">
-              <summary>選択波の復号設定</summary>
+              <summary>復号設定</summary>
               <label for="selected-format"
                 >データ形式<select id="selected-format">
                   <option value="slotted">通常（時分割データ）</option>
@@ -428,85 +208,228 @@
                 </select></label
               >
             </details>
-          </details>
-        </div>
-        <section class="card operation-monitor" aria-labelledby="operation-title">
-          <div class="section-title">
-            <h2 id="operation-title" tabindex="-1">運行把握モニタ</h2>
-            <span id="operation-state" class="badge" role="status">情報待ち</span>
-          </div>
-          <div id="operation-empty" class="empty compact">
-            <h3 id="operation-empty-title">線区別の情報を待っています</h3>
-            <p id="operation-empty-hint">共用波を含めて受信を開始してください。</p>
-            <a href="#channels-title">受信チャンネルを確認</a>
-          </div>
-          <div id="operation-content" hidden>
-            <dl class="operation-times">
-              <div><dt id="operation-received-label">最終受信日時</dt><dd id="operation-received-time">不明</dd></div>
-            </dl>
-            <table class="operation-table">
-              <caption class="sr-only">電文に含まれる線区別の遅延と在線数。不明は未提供の値です。</caption>
-              <thead><tr>
-                <th scope="col">線区</th><th scope="col">遅延 / 在線</th>
-                <th scope="col">3～9分</th><th scope="col">10～19分</th>
-                <th scope="col">20分以上</th><th scope="col">最大遅延</th><th scope="col">その列車</th>
-              </tr></thead>
-              <tbody id="operation-rows"></tbody>
-            </table>
-            <div class="operation-footnote"><span id="operation-source"></span><span id="operation-repetitions"></span></div>
           </div>
         </section>
-        <section class="card messages" aria-labelledby="messages-title">
-          <div class="section-title">
-            <div>
-              <h2 id="messages-title" tabindex="-1">受信データ</h2>
-              <p id="data-status"></p>
-            </div>
+        <section class="pane messages" aria-labelledby="messages-title">
+          <div class="pane-head">
+            <h2 id="messages-title" tabindex="-1">受信データ</h2>
             <span id="message-count" class="badge">0 件</span>
           </div>
           <div class="message-toolbar">
             <a id="message-channel" href="#channels-title">選択波を読み込み中</a
-            ><button id="pause-messages" aria-pressed="false">
-              更新を一時停止
-            </button>
+            ><button id="pause-messages" aria-pressed="false">更新を一時停止</button>
           </div>
-          <div id="messages"></div>
+          <p id="data-status" class="pane-note"></p>
+          <div class="pane-body">
+            <div id="messages"></div>
+          </div>
         </section>
+        <section class="pane operation-monitor" aria-labelledby="operation-title">
+          <div class="pane-head">
+            <h2 id="operation-title" tabindex="-1">運行把握モニタ</h2>
+            <span id="operation-state" class="badge" role="status">情報待ち</span>
+          </div>
+          <div class="pane-body">
+            <div id="operation-empty" class="empty compact">
+              <h3 id="operation-empty-title">線区別の情報を待っています</h3>
+              <p id="operation-empty-hint">共用波を含めて受信を開始してください。</p>
+              <a href="#channels-title">受信チャンネルを確認</a>
+            </div>
+            <div id="operation-content" hidden>
+              <dl class="operation-times">
+                <div><dt id="operation-received-label">最終受信日時</dt><dd id="operation-received-time">不明</dd></div>
+              </dl>
+              <table class="operation-table">
+                <caption class="sr-only">電文に含まれる線区別の遅延と在線数。不明は未提供の値です。</caption>
+                <thead><tr>
+                  <th scope="col">線区</th><th scope="col">遅延 / 在線</th>
+                  <th scope="col">3～9分</th><th scope="col">10～19分</th>
+                  <th scope="col">20分以上</th><th scope="col">最大遅延</th><th scope="col">その列車</th>
+                </tr></thead>
+                <tbody id="operation-rows"></tbody>
+              </table>
+              <div class="operation-footnote"><span id="operation-source"></span><span id="operation-repetitions"></span></div>
+            </div>
+          </div>
+        </section>
+      </main>
+      <footer class="status-bar">
+        <dl class="totals" aria-label="受信全体の状態">
+          <div>
+            <dt>有効データ</dt>
+            <dd id="total-data">—</dd>
+          </div>
+          <div>
+            <dt>音声フレーム</dt>
+            <dd id="total-voice">—</dd>
+          </div>
+          <div>
+            <dt>処理欠落</dt>
+            <dd id="total-drops">—</dd>
+          </div>
+        </dl>
+        <span id="capture-info"></span><span id="progress"></span>
+        <span id="recording-summary"></span>
+        <span id="recording-output" hidden></span>
+        <span id="runtime-note" hidden></span>
+        <span class="status-end"
+          ><span class="version">v1.7.0</span
+          ><button
+            id="about-open"
+            type="button"
+            aria-haspopup="dialog"
+            aria-controls="about-dialog"
+          >
+            バージョン情報
+          </button></span
+        >
+      </footer>
+    </div>
+    <dialog id="settings-dialog" class="drawer" aria-labelledby="settings-title">
+      <div class="drawer-head">
+        <h2 id="settings-title">設定</h2>
+        <button id="settings-close" type="button">閉じる</button>
       </div>
-      <section class="card recording" aria-labelledby="recording-title">
-        <div class="recording-bar">
-          <div class="recording-heading">
-            <h2 id="recording-title" tabindex="-1">録音・データ保存</h2>
-            <span id="recording-state" class="badge" role="status">未保存</span>
-          </div>
-          <div class="recording-actions">
-            <button id="record-start" type="button" disabled>保存を開始</button>
-            <button id="record-stop" type="button" disabled>保存を停止</button>
-          </div>
-        </div>
-        <details id="recording-settings">
-          <summary>保存内容・保存先</summary>
+      <div class="drawer-body">
+        <section id="source-panel" class="settings-section" aria-labelledby="source-title">
+          <h3 id="source-title">受信</h3>
+          <fieldset id="settings">
+            <legend class="sr-only">受信設定</legend>
+            <label class="region" for="region"
+              >受信プリセット<select id="region" disabled>
+                <option value="east">受信設定を読み込み中</option>
+              </select></label
+            >
+            <details id="preset-settings" class="preset-settings">
+              <summary>
+                プリセットファイル · <span id="preset-source">組み込み</span>
+              </summary>
+              <p id="preset-path" dir="auto" hidden></p>
+              <div class="preset-actions">
+                <button id="preset-browse" type="button">JSON ファイルを選択</button>
+                <button id="preset-reload" type="button" disabled>再読み込み</button>
+                <button id="preset-builtin" type="button" disabled>組み込みに戻す</button>
+              </div>
+            </details>
+            <p id="preset-status" class="preset-feedback" role="status"></p>
+            <p id="preset-error" class="preset-feedback field-error" hidden></p>
+            <div class="source-grid">
+              <label for="input-kind" class="span-all"
+                >入力方式<select id="input-kind">
+                  <option value="rtl_tcp" selected>RTL-TCP サーバー</option>
+                  <option value="sdr">SoapySDR デバイス</option>
+                  <option value="wave">IQ WAV ファイル</option>
+                </select></label
+              >
+              <div id="tcp-group" class="tcp-fields span-all">
+                <label for="host"
+                  >IP アドレス<input
+                    id="host"
+                    placeholder="IPv4 / IPv6 アドレス"
+                    autocomplete="off"
+                    spellcheck="false" /></label
+                ><label for="port"
+                  >ポート<input
+                    id="port"
+                    type="number"
+                    placeholder="1–65535"
+                    min="1"
+                    max="65535"
+                    step="1"
+                    inputmode="numeric"
+                /></label>
+              </div>
+              <div id="device-group" class="span-all" hidden>
+                <label for="device"
+                  >デバイス<select id="device">
+                    <option value="">デバイスを検索してください</option>
+                  </select></label
+                ><button id="scan" type="button">検索</button>
+              </div>
+              <div id="file-group" class="span-all" hidden>
+                <label for="path">IQ WAV ファイル</label>
+                <div class="file-row">
+                  <input
+                    id="path"
+                    placeholder="ステレオ float32 / PCM16"
+                    autocomplete="off"
+                  /><button id="browse" type="button">選択</button>
+                </div>
+              </div>
+              <label for="center"
+                >中心周波数 <span class="unit">MHz</span
+                ><input
+                  id="center"
+                  type="number"
+                  value="352.603125"
+                  step="0.000001"
+                  min="0.000001"
+                  inputmode="decimal"
+                  required
+              /></label>
+              <label for="gain"
+                >ゲイン <span class="unit">dB</span
+                ><input id="gain" type="number" placeholder="自動" step="0.1" inputmode="decimal"
+              /></label>
+              <label for="rate"
+                >サンプルレート <span class="unit">S/s</span
+                ><input
+                  id="rate"
+                  type="number"
+                  value="240000"
+                  min="9600"
+                  max="20000000"
+                  step="1"
+                  inputmode="numeric"
+                  required
+                  aria-describedby="rate-hint"
+                  data-hint="rate-hint"
+              /></label>
+              <label id="ppm-group" for="ppm"
+                >周波数補正 <span class="unit">ppm</span
+                ><input
+                  id="ppm"
+                  type="number"
+                  value="0"
+                  min="-1000"
+                  max="1000"
+                  step="1"
+                  inputmode="numeric"
+              /></label>
+            </div>
+            <div id="rate-presets" class="rate-presets" role="group" aria-labelledby="rate-presets-label">
+              <span id="rate-presets-label" class="sr-only">サンプルレートの候補</span>
+            </div>
+            <p id="rate-hint" class="field-hint" hidden></p>
+            <p id="source-hint" class="field-hint" hidden></p>
+            <p id="field-error" class="field-error" hidden></p>
+            <details id="soapy-options" class="advanced" hidden>
+              <summary>SoapySDR の詳細設定</summary>
+              <div class="advanced-grid">
+                <label for="args" class="span-all"
+                  >デバイス引数<input
+                    id="args"
+                    placeholder="driver=rtlsdr,serial=…"
+                    autocomplete="off"
+                    spellcheck="false" /></label
+                ><label for="rx-channel"
+                  >RX 番号<input id="rx-channel" type="number" value="0" min="0" step="1" /></label
+                ><label for="antenna"
+                  >アンテナ<input id="antenna" placeholder="機器の既定値"
+                /></label>
+              </div>
+            </details>
+          </fieldset>
+        </section>
+        <section id="recording-settings" class="settings-section" aria-labelledby="recording-title">
+          <h3 id="recording-title">録音・データ保存</h3>
           <fieldset id="output-options" class="output-options">
             <legend>保存する内容</legend>
             <label class="check-label"
-              ><input
-                id="output-audio"
-                type="checkbox"
-                checked
-              />音声通話（WAV · 8 kHz モノラル）</label
+              ><input id="output-audio" type="checkbox" checked />音声通話（WAV · 8 kHz モノラル）</label
             >
-            <label class="check-label"
-              ><input
-                id="output-raw"
-                type="checkbox"
-              />生フレーム（JSONL）</label
-            >
-            <label class="check-label"
-              ><input
-                id="output-data"
-                type="checkbox"
-              />データ電文（JSONL）</label
-            >
+            <label class="check-label"><input id="output-raw" type="checkbox" />生フレーム（JSONL）</label>
+            <label class="check-label"><input id="output-data" type="checkbox" />データ電文（JSONL）</label>
           </fieldset>
           <div class="recording-controls">
             <label for="record-directory"
@@ -521,29 +444,10 @@
             </label>
             <button id="record-browse" type="button">フォルダーを選択</button>
           </div>
-          <div class="recording-info">
-            <p id="recording-summary"></p>
-            <p id="recording-output" hidden></p>
-          </div>
-        </details>
-        <p id="recording-error" class="field-error" hidden></p>
-      </section>
-      <footer>
-        <span
-          >JR Conventional-line Radio Receiver
-          <span class="version">v1.7.0</span></span
-        >
-        <button
-          id="about-open"
-          type="button"
-          aria-haspopup="dialog"
-          aria-controls="about-dialog"
-        >
-          バージョン情報
-        </button>
-        <span id="runtime-note" hidden></span>
-      </footer>
-    </main>
+          <p id="recording-field-error" class="field-error" hidden></p>
+        </section>
+      </div>
+    </dialog>
     <dialog
       id="about-dialog"
       aria-labelledby="about-title"

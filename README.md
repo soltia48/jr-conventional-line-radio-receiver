@@ -40,17 +40,17 @@ Local builds and launches have been tested on Linux only. There are no installer
 
 [`ui/radio-presets.json`](ui/radio-presets.json) defines channels and receive profiles separately in a custom JSON format, shared by the GUI and CLI as built-in presets.
 The desktop app can also load an external file in the same format, without rebuilding.
-While stopped, open “受信設定” (Receive settings) → “プリセットファイル” (Preset file) → “JSON ファイルを選択” (Select JSON file).
+While stopped, open the settings button at the top right → “プリセットファイル” (Preset file) → “JSON ファイルを選択” (Select JSON file).
 “再読み込み” (Reload) applies edits; “組み込みに戻す” (Restore built-in) returns to the three built-in operator profiles.
 
-1. Choose an input. For RTL-TCP, enter the server's **IP address and port** (empty on first launch).
+1. Open the settings button at the top right and choose an input. For RTL-TCP, enter the server's **IP address and port** (empty on first launch).
    For local hardware, choose “SoapySDR デバイス” (SoapySDR device) and pick one with “検索” (Find).
    Advanced settings take SoapySDR arguments, an RX channel index, and an antenna.
-2. In “受信設定”, choose a receive profile, then check the channels to receive. The default is JR East's 22 channels.
+2. In settings, choose a receive profile, then check the channels to receive in the channel list on the left. The default is JR East's 22 channels.
    Or use **“路線から選ぶ” (Choose by line)**: search by line, station, or D number, select one or more sections, review their frequencies, and apply. Reception still starts only with “受信を開始”. See [route selection and external route data](docs/ROUTES.md).
    The built-in profiles are JR East (22 channels), JR Central (3), and JR West (19), each with only that operator's frequencies.
-   The default “簡易” (Compact) view shows frequency, allocation, and sync state as tiles that fit the window width.
-   “詳細” (Detailed) shows format and voice/data counts in a table. Switching views does not affect reception, recording, the selected channel, or the search.
+   The default “簡易” (Compact) view shows frequency, allocation, and sync state on one line per channel.
+   “詳細” (Detailed) shows format and voice/data counts in a table and widens the list. Switching views does not affect reception, recording, the selected channel, or the search.
 3. The defaults are a center frequency of **352.603125 MHz** and a requested rate of **240,000 S/s**.
    Buttons under the fields set common rates: 240k, 288k, 1.024M, 2.048M, and 2.4M for RTL-TCP; 240k, 250k, 1M, and 2.048M for SoapySDR. The button for the current rate stays pressed.
    If the rate is outside the RTL-TCP ranges or too low to demodulate every enabled channel at the current center, a note below says so and gives the required rate. Starting reception validates the field value.
@@ -61,13 +61,12 @@ While stopped, open “受信設定” (Receive settings) → “プリセット
    For IQ WAV input, the center frequency you entered is kept.
 4. “受信を開始” (Start reception) processes every checked channel. Launching the app does not connect to a server.
    Select a frequency to see its sync state, EVM, constellation, and decoded data.
-5. “音声を聴く” (Listen) plays the selected channel. **“通話を自動選択” (Auto-select calls)** is on by default. Both checkboxes sit in the session bar, which stays reachable while scrolling.
+5. “音声を聴く” (Listen) plays the selected channel. **“通話を自動選択” (Auto-select calls)** is on by default. Both checkboxes sit in the session bar at the top.
    When calls overlap, the one that started first wins; when it ends, the earliest call still active takes over.
    **Selecting a frequency manually pins that channel**, and the monitor shows “手動選択で固定中” (Pinned manually). Turn auto-select back on to resume switching.
    All other channels keep decoding and synthesizing voice; the speaker plays one channel at a time.
-6. In “録音・データ保存” (Recording and data output), expand “保存内容・保存先” (Formats and folder) to choose WAV, raw-frame JSONL, or data-message JSONL.
-   “保存を開始” (Start saving) saves every channel being received. Only WAV is on by default.
-   The status and start/stop buttons stay visible when the section is collapsed.
+6. Under “録音・データ保存” (Recording and data output) in settings, choose WAV, raw-frame JSONL, or data-message JSONL, and the output folder.
+   “保存を開始” (Start saving) in the session bar saves every channel being received. Only WAV is on by default.
 
 The constellation and EVM use the signal after receive filtering, timing recovery, carrier correction, and inter-symbol interference cancellation.
 That last step uses the sequence detector's current best channel estimate. The plot keeps the received amplitude and phase scatter rather than showing ideal decided symbols.
@@ -81,17 +80,18 @@ Hardware support depends on the available [SoapySDR drivers](https://github.com/
 
 ### Screen layout
 
-What matters during reception comes first. From the top: the session bar, reception totals, receive settings, the channel list and selected-channel monitor, the operation monitor and received data, and recording.
+The app fills the window as one screen and the page itself does not scroll; lists and logs scroll inside their panes.
 
-The session bar holds the state, “受信を開始” (Start) and “停止” (Stop), the selected channel (frequency, allocation, sync state), the synchronized count, the save state, and the two audio checkboxes. The selected channel links to the monitor, and the save state links to the recording section.
-On screens wider than 36rem and at least 36rem tall, the bar stays pinned while scrolling, and link and focus targets are offset so it never covers them. Narrow windows drop the allocation name from the bar.
-Below it, one line shows the band and running totals of valid data, voice frames, and dropped processing blocks.
-“受信設定” is open while stopped and closes when reception starts; its header still names the profile and the input or endpoint.
-Search only filters the list; it never changes which channels are received.
-The channel list and monitor start open. The monitor leads with the frequency and allocation, then diagnostics and playback settings. Select a header to collapse a panel; reception, audio, and data updates continue.
-On wide screens the operation monitor and received data sit side by side, with links to each section above them. The received-data panel names its channel, which links to the channel list.
-Preset errors and invalid channel selections open the relevant settings automatically.
-“更新を一時停止” (Pause updates) freezes the message log while decoding and the operation monitor continue. On narrow screens the detailed list becomes cards.
+- **Session bar (top):** state, “受信を開始” (Start) and “停止” (Stop), the synchronized count, the two audio checkboxes, the save state with “保存を開始” / “保存を停止”, and the settings button. The settings button names the profile and the input or endpoint, and is outlined when no RTL-TCP server is set.
+- **Channels (left):** the band map, “路線から選ぶ”, search, receive-all, and the list. The band map places every channel at its frequency: green is synchronized, a tall amber bar carries a call, red is an error, and an outline is excluded. Search only filters the list; it never changes which channels are received.
+- **Selected-channel monitor (top right):** frequency and allocation, diagnostics, the constellation, volume, and decoder settings.
+- **Received data and operation monitor (bottom right):** side by side. The received-data pane names its channel, which links to the channel list.
+- **Status bar (bottom):** running totals of valid data, voice frames, and dropped processing blocks, input details, saving progress, and version information.
+
+Receive and saving settings live in a panel that slides in from the right when you select the settings button; the live screen stays visible behind it.
+Preset errors and invalid setting values open this panel automatically and focus the field to fix.
+“更新を一時停止” (Pause updates) freezes the message log while decoding and the operation monitor continue.
+Windows 64rem wide or less, or 40rem tall or less, stack the monitor, channels, received data, and operation monitor in one scrolling column. When the list is narrow, the detailed view becomes cards.
 
 ### Operation monitor
 
@@ -151,11 +151,11 @@ The end of synthesized speech still plays after a brief signal loss. While a cha
 
 ## Recording and data output
 
-Once the state shows “受信中” (Receiving), select **“保存を開始” (Start saving)**.
+Once the state shows “受信中” (Receiving), select **“保存を開始” (Start saving)** in the session bar.
 Saving then stays on for later sessions, including after a restart; stopping reception, reaching end of file, or quitting does not turn it off. “保存を停止” (Stop saving), or “保存を無効にする” (Turn off saving) while idle, turns it off. Older settings files without this preference default to off. If an automatic start fails, the app shows an error and keeps receiving without retrying.
-“保存内容・保存先” is collapsed at first. Expand it to choose formats and the output folder, or to see the session folder.
+Choose formats and the output folder under “録音・データ保存” in settings. Starting without a folder opens settings there. The status bar shows the session folder.
 Formats are independent, so JSONL-only output works. Stop saving before changing them.
-An error expands the section, and its message stays visible if you collapse it again.
+Saving errors appear at the top of the window while reception continues.
 
 The default folder is `JR Conventional-line Radio Receiver/Recordings` in your Music folder:
 the known Music folder on Windows, `~/Music` on macOS, and `XDG_MUSIC_DIR` on Linux, with `~/Music` as the fallback.
