@@ -48,11 +48,94 @@ impl Config {
     }
 }
 
+// rtl_tcp's automatic mode hands gain to the tuner's AGC, which drives the
+// 8-bit ADC into clipping on this wideband multi-carrier input (measured: 6.6 %
+// of samples clipped, worse than the highest manual gain) and loses frame sync.
+// An empty gain therefore selects manual gain stepped down from the top of the
+// tuner's table while the ADC clips. It never steps up again: alternating
+// between clipping and not would cost frames on every step.
+// Light clipping must last this many 50 ms windows before the gain steps.
+const LIGHT_CLIPPING_WINDOWS: u32 = 10;
+struct AutoGain {
+    index: u32,
+    // Samples still to discard: a new gain reaches the stream only after the
+    // server's USB buffer (256 KiB) and the network drain.
+    holdoff: u64,
+    settle: u64,
+    window: u64,
+    seen: u64,
+    clipped: u64,
+    // Consecutive windows with light clipping; a brief burst does not step.
+    strikes: u32,
+}
+impl AutoGain {
+    fn new(gain_count: u32, sample_rate: u32) -> Option<Self> {
+        let index = gain_count.checked_sub(1)?;
+        let settle = 131072 + u64::from(sample_rate) / 5;
+        Some(Self {
+            index,
+            holdoff: settle,
+            settle,
+            window: (u64::from(sample_rate) / 20).max(1),
+            seen: 0,
+            clipped: 0,
+            strikes: 0,
+        })
+    }
+    /// Counts clipped components in `bytes` (interleaved CU8) and returns the
+    /// next gain index once a full window clipped too often.
+    fn observe(&mut self, bytes: &[u8]) -> Option<u32> {
+        let mut samples = (bytes.len() / 2) as u64;
+        let mut start = 0;
+        if self.holdoff > 0 {
+            let skip = self.holdoff.min(samples);
+            self.holdoff -= skip;
+            samples -= skip;
+            start = skip as usize * 2;
+        }
+        if samples == 0 || self.index == 0 {
+            return None;
+        }
+        self.seen += samples;
+        self.clipped += bytes[start..]
+            .iter()
+            .filter(|&&b| b == 0 || b == 255)
+            .count() as u64;
+        if self.seen < self.window {
+            return None;
+        }
+        // Clipped I/Q components per 1000 samples.
+        let rate = self.clipped * 1000 / self.seen;
+        self.seen = 0;
+        self.clipped = 0;
+        let step = match rate {
+            0 => {
+                self.strikes = 0;
+                return None;
+            }
+            1..=9 => {
+                self.strikes += 1;
+                if self.strikes < LIGHT_CLIPPING_WINDOWS {
+                    return None;
+                }
+                1
+            }
+            10..=39 => 2,
+            _ => 3,
+        };
+        self.strikes = 0;
+        self.index = self.index.saturating_sub(step);
+        self.holdoff = self.settle;
+        Some(self.index)
+    }
+}
+
 pub struct RtlTcp {
     stream: TcpStream,
     bytes: Vec<u8>,
     filled: usize,
     last_data: Instant,
+    auto_gain: Option<AutoGain>,
     pub tuner_type: u32,
     pub gain_count: u32,
 }
@@ -106,15 +189,27 @@ impl RtlTcp {
             bytes: Vec::new(),
             filled: 0,
             last_data: Instant::now(),
+            auto_gain: None,
             tuner_type: u32::from_be_bytes(header[4..8].try_into().unwrap()),
             gain_count: u32::from_be_bytes(header[8..12].try_into().unwrap()),
         };
         input.command(0x02, config.sample_rate)?;
         input.command(0x01, config.center_hz)?;
         input.command(0x05, config.ppm as u32)?;
-        input.command(0x03, u32::from(config.gain_db.is_some()))?;
-        if let Some(gain) = config.gain_db {
-            input.command(0x04, (gain * 10.0).round() as i32 as u32)?;
+        match config.gain_db {
+            Some(gain) => {
+                input.command(0x03, 1)?;
+                input.command(0x04, (gain * 10.0).round() as i32 as u32)?;
+            }
+            None => match AutoGain::new(input.gain_count, config.sample_rate) {
+                Some(auto) => {
+                    input.command(0x03, 1)?;
+                    input.command(0x0d, auto.index)?;
+                    input.auto_gain = Some(auto);
+                }
+                // No gain table reported: only the tuner's AGC is available.
+                None => input.command(0x03, 0)?,
+            },
         }
         Ok(input)
     }
@@ -163,6 +258,13 @@ impl RtlTcp {
                 }
                 Err(e) => return Err(format!("RTL-TCP: IQ 受信エラー ({e})")),
             }
+        }
+        if let Some(index) = self
+            .auto_gain
+            .as_mut()
+            .and_then(|g| g.observe(&self.bytes[..size]))
+        {
+            self.command(0x0d, index)?;
         }
         for (out, pair) in output.iter_mut().zip(self.bytes.as_chunks::<2>().0) {
             *out = Complex32 {
@@ -233,6 +335,67 @@ mod tests {
         assert_eq!((iq[1].real, iq[1].imaginary), (0.5 / 128.0, -0.5 / 128.0));
         server.join().unwrap();
         assert!(input.read(&mut iq).unwrap_err().contains("接続を閉じ"));
+    }
+    #[test]
+    fn empty_gain_steps_manual_gain_down_while_the_adc_clips() {
+        // 240 kS/s: 50 ms windows of 12000 samples after a 179072-sample settle.
+        let mut gain = AutoGain::new(29, 240000).unwrap();
+        assert_eq!(gain.index, 28);
+        let clean = vec![128u8; 24000];
+        let mut heavy = clean.clone();
+        heavy[..1000].fill(255);
+        // Samples still in flight from the previous gain are ignored.
+        let in_flight = vec![255u8; gain.settle as usize * 2];
+        assert_eq!(gain.observe(&in_flight), None);
+        assert_eq!(gain.holdoff, 0);
+        assert_eq!(gain.observe(&heavy), Some(25));
+        assert_eq!(gain.holdoff, gain.settle);
+        // Light clipping (1 per mille) steps once only after persisting.
+        gain.holdoff = 0;
+        let mut light = clean.clone();
+        light[..12].fill(0);
+        for _ in 0..LIGHT_CLIPPING_WINDOWS - 1 {
+            assert_eq!(gain.observe(&light), None);
+        }
+        assert_eq!(gain.observe(&light), Some(24));
+        gain.holdoff = 0;
+        for _ in 0..LIGHT_CLIPPING_WINDOWS - 1 {
+            assert_eq!(gain.observe(&light), None);
+        }
+        assert_eq!(gain.observe(&clean), None);
+        assert_eq!(gain.observe(&light), None);
+        // A clean signal never raises the gain; the lowest index stays put.
+        for _ in 0..100 {
+            assert_eq!(gain.observe(&clean), None);
+        }
+        gain.index = 1;
+        assert_eq!(gain.observe(&heavy), Some(0));
+        gain.holdoff = 0;
+        assert_eq!(gain.observe(&heavy), None);
+        assert!(AutoGain::new(0, 240000).is_none());
+    }
+    #[test]
+    fn empty_gain_selects_the_top_manual_gain_index() {
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let port = listener.local_addr().unwrap().port();
+        let server = thread::spawn(move || {
+            let (mut s, _) = listener.accept().unwrap();
+            header(&mut s);
+            let mut commands = [0; 25];
+            s.read_exact(&mut commands).unwrap();
+            let words: Vec<_> = commands
+                .as_chunks::<5>()
+                .0
+                .iter()
+                .map(|w| (w[0], u32::from_be_bytes(w[1..].try_into().unwrap())))
+                .collect();
+            assert_eq!(&words[3..], [(3, 1), (0x0d, 28)]);
+        });
+        let mut c = config(port);
+        c.gain_db = None;
+        let input = RtlTcp::open(&c, &AtomicBool::new(false)).unwrap();
+        assert_eq!(input.auto_gain.as_ref().map(|g| g.index), Some(28));
+        server.join().unwrap();
     }
     #[test]
     fn silent_server_fails_instead_of_receiving_forever() {

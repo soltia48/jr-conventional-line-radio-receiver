@@ -107,7 +107,7 @@ The decoder supports the verified `0x22 / C9` common-channel form: an 11-byte pr
 ### RTL-TCP
 
 RTL-TCP accepts IPv4 or IPv6 addresses and requested rates of 225001–300000 or 900001–3200000 S/s.
-An empty gain field selects tuner AGC; a number sets manual gain. The ppm correction must be an integer.
+An empty gain field selects automatic gain: the app starts at the tuner's highest gain and steps it down while the 8-bit ADC clips. It never steps back up. rtl_tcp's own tuner AGC is not used, because it clips the wideband input and loses frame sync. A number sets manual gain. The ppm correction must be an integer.
 RTL-TCP is an extra Rust TCP input alongside SoapySDR, not a replacement.
 The protocol does not report server-side IQ loss or rejected settings. “処理欠落” (Dropped blocks) counts drops in the app's own worker queues only;
 it does not prove the server delivered every sample.

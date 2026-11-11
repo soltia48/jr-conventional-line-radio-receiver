@@ -151,7 +151,8 @@ fn rtl_tcp_disconnect_is_a_failure_after_all_22_workers_drain() {
     let server = std::thread::spawn(move || {
         let (mut stream, _) = listener.accept().unwrap();
         stream.write_all(b"RTL0\0\0\0\x05\0\0\0\x1d").unwrap();
-        stream.read_exact(&mut [0; 20]).unwrap();
+        // Rate, frequency, ppm, manual gain mode, top gain index.
+        stream.read_exact(&mut [0; 25]).unwrap();
         stream.write_all(&vec![127; 38400 * 2]).unwrap();
     });
     let mut session = Session::start(Config {
