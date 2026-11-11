@@ -80,6 +80,28 @@ function run(command, args, options = {}) {
   });
 }
 
+// The SoapySDR ABI the release links against: the distribution's on Linux,
+// Homebrew's on macOS, the bundled SDK's on Windows.
+function soapyAbiVersion() {
+  if (process.platform === "win32") {
+    if (!process.env.SOAPY_SDR_ROOT)
+      throw new Error("SOAPY_SDR_ROOT is required");
+    const header = readFileSync(
+      join(process.env.SOAPY_SDR_ROOT, "include/SoapySDR/Version.h"),
+      "utf8",
+    );
+    const match = header.match(/^#define\s+SOAPY_SDR_ABI_VERSION\s+"([^"]+)"/m);
+    if (!match) throw new Error("Cannot read SOAPY_SDR_ABI_VERSION");
+    return match[1];
+  }
+  const version = execFileSync("pkg-config", ["--modversion", "SoapySDR"], {
+    encoding: "utf8",
+  }).trim();
+  const match = version.match(/^(\d+\.\d+)\./);
+  if (!match) throw new Error(`Unexpected SoapySDR version: ${version}`);
+  return match[1];
+}
+
 function packageRelease(info) {
   const target = process.env.RELEASE_TARGET;
   const expected = targets[target];
@@ -102,23 +124,26 @@ function packageRelease(info) {
       `Output already exists: ${stage}. Use a clean dist directory.`,
     );
   mkdirSync(stage, { recursive: true });
+  const soapyAbi = soapyAbiVersion();
   for (const binary of ["jr-receiver-desktop", "jr-receiver"]) {
     const file = join(stage, binary + extension);
     copyFileSync(join(root, "target/release", binary + extension), file);
     if (!windows) chmodSync(file, 0o755);
     if (process.platform === "darwin") {
       // Avoid a Cellar version/revision path in downloadable executables.
-      // Homebrew's opt symlink remains stable across 0.8 patch updates.
+      // Homebrew's opt symlink remains stable across patch updates.
       const listing = execFileSync("otool", ["-L", file], { encoding: "utf8" });
       const dependencies = [
-        ...listing.matchAll(/^\s*(\S*libSoapySDR\.0\.8\.dylib)\s+\(/gm),
+        ...listing.matchAll(/^\s*(\S*libSoapySDR\.([\d.]+)\.dylib)\s+\(/gm),
       ];
-      if (dependencies.length !== 1)
-        throw new Error(`Expected one SoapySDR 0.8 dependency in ${file}`);
+      if (dependencies.length !== 1 || dependencies[0][2] !== soapyAbi)
+        throw new Error(
+          `Expected one SoapySDR ${soapyAbi} dependency in ${file}`,
+        );
       const prefix = execFileSync("brew", ["--prefix", "soapysdr"], {
         encoding: "utf8",
       }).trim();
-      const library = join(prefix, "lib/libSoapySDR.0.8.dylib");
+      const library = join(prefix, `lib/libSoapySDR.${soapyAbi}.dylib`);
       if (!existsSync(library))
         throw new Error(`Missing SoapySDR runtime: ${library}`);
       run("install_name_tool", ["-change", dependencies[0][1], library, file]);
@@ -166,7 +191,7 @@ function packageRelease(info) {
         version: info.version,
         revision: process.env.GITHUB_SHA ?? null,
         target,
-        soapysdr_abi: "0.8",
+        soapysdr_abi: soapyAbi,
       },
       null,
       2,

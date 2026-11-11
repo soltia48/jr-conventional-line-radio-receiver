@@ -14,7 +14,7 @@ Rust・Tauri 2・SoapySDR で作った、JR 在来線デジタル列車無線の
 
 ## はじめに
 
-Rust（stable）、**SoapySDR 0.8 系の開発ライブラリ**、使用する SDR 用の SoapySDR モジュール、
+Rust（stable）、**SoapySDR 0.8 系または 0.9 系の開発ライブラリ**、使用する SDR 用の SoapySDR モジュール、
 [Tauri の OS 別の前提ソフトウェア](https://v2.tauri.app/start/prerequisites/)をインストールしてください。
 フロントエンドは素の HTML / CSS / JavaScript なので、ビルドと実行に Node.js や npm は不要です。
 UI のテストには Node.js 24.15 以降と `npm ci` を使います。
@@ -31,7 +31,7 @@ cargo run --release -p jr-receiver-desktop
 受信には `--release` ビルドを使ってください。`Cargo.lock` はリポジトリに含まれています。
 GitHub Actions で Linux x86_64、Windows x64、macOS（Apple Silicon / Intel）向けの GUI・CLI バイナリをビルドします。
 手動実行では成果物を作るだけです。`v1.8.0` のようにバージョンと一致するタグを push すると、GitHub Release にも公開します。
-Windows 版には SoapySDR の DLL が同梱され、Linux / macOS 版はシステムにインストールされた SoapySDR 0.8 を使います。
+Windows 版には SoapySDR の DLL が同梱され、Linux 版はシステムの SoapySDR 0.8、macOS 版は Homebrew の SoapySDR（0.9）を使います。
 ビルド、実行時の依存関係、CI、公開の手順は[リリースガイド](docs/RELEASE.ja.md)を参照してください。
 ローカルでのビルドと起動は Linux でのみ確認しています。インストーラー、配布者の署名、公証はありません。
 

@@ -15,7 +15,7 @@ The interface is in Japanese; this guide gives each on-screen label with its Eng
 
 ## Getting started
 
-Install stable Rust, the **SoapySDR 0.8 development libraries**, the SoapySDR module for your hardware,
+Install stable Rust, the **SoapySDR 0.8 or 0.9 development libraries**, the SoapySDR module for your hardware,
 and the [Tauri prerequisites for your OS](https://v2.tauri.app/start/prerequisites/).
 The frontend is plain HTML, CSS, and JavaScript, so building and running the app needs no Node.js or npm.
 The UI tests use Node.js 24.15 or later and `npm ci`.
@@ -32,7 +32,7 @@ cargo run --release -p jr-receiver-desktop
 Use `--release` for reception. `Cargo.lock` is committed.
 GitHub Actions builds GUI and CLI binaries for Linux x86_64, Windows x64, and macOS Apple Silicon / Intel.
 Manual runs only produce artifacts; pushing a tag that matches the version, such as `v1.8.0`, also publishes a GitHub Release.
-Windows archives bundle the SoapySDR DLL; Linux and macOS use the system's SoapySDR 0.8.
+Windows archives bundle the SoapySDR DLL; Linux uses the system's SoapySDR 0.8 and macOS uses Homebrew's SoapySDR (0.9).
 See the [release guide](docs/RELEASE.md) for builds, runtime dependencies, CI, and publishing.
 Local builds and launches have been tested on Linux only. There are no installers, publisher signatures, or notarization.
 

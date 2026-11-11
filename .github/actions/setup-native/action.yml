@@ -1,5 +1,5 @@
 name: Native build dependencies
-description: Install Tauri and SoapySDR 0.8 build dependencies on the native runner.
+description: Install Tauri and SoapySDR build dependencies on the native runner.
 runs:
   using: composite
   steps:

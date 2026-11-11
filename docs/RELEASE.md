@@ -51,7 +51,7 @@ brew install soapysdr
 ./jr-receiver presets --list
 ```
 
-SoapySDR is not bundled. The executables reference Homebrew's `opt/soapysdr/lib/libSoapySDR.0.8.dylib`.
+SoapySDR is not bundled. The executables reference Homebrew's `opt/soapysdr/lib/libSoapySDR.<ABI>.dylib` (0.9 as of Homebrew's SoapySDR 0.9.0); `build-info.json` records the ABI.
 References to specific Cellar revisions are replaced during packaging. Homebrew can also manage SoapySDR device modules.
 
 ### Windows

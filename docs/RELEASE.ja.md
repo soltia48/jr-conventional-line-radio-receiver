@@ -51,7 +51,7 @@ brew install soapysdr
 ./jr-receiver presets --list
 ```
 
-SoapySDR は同梱せず、Homebrew の `opt/soapysdr/lib/libSoapySDR.0.8.dylib` を参照します。
+SoapySDR は同梱せず、Homebrew の `opt/soapysdr/lib/libSoapySDR.<ABI>.dylib`（Homebrew の SoapySDR 0.9.0 では 0.9）を参照します。ABI は `build-info.json` に記録されます。
 Cellar 内の特定リビジョンへの参照は配布時に置換します。SoapySDR の機器モジュールも Homebrew 側で管理できます。
 
 ### Windows
